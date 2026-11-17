@@ -241,9 +241,9 @@ Show one gentle card at a time on Home, dismissible, with a "Why am I seeing thi
 ## 9. Milestones
 
 ### M0: Project setup
-- [ ] `npx create-expo-app` with TypeScript, expo-router
-- [ ] ESLint + Prettier + TS strict
-- [ ] Theme tokens + Nunito font loaded
+- [x] `npx create-expo-app` with TypeScript, expo-router
+- [x] ESLint + Prettier + TS strict
+- [x] Theme tokens + Nunito font loaded
 - [ ] Dev builds running on iOS simulator and Android emulator
 
 ### M1: Encrypted storage
