@@ -30,9 +30,9 @@ export default function OnboardingScreen() {
 }
 
 const styles = StyleSheet.create({
+  // No side padding: the cards are full-width pages that swipe edge to edge.
   screen: {
     flex: 1,
-    paddingHorizontal: spacing.xl,
     paddingTop: spacing.xl,
     paddingBottom: spacing.xl,
   },

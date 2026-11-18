@@ -1,55 +1,170 @@
-import { useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { useRef, useState, type ComponentRef, type ComponentType } from 'react';
+import {
+  Animated,
+  ScrollView,
+  StyleSheet,
+  Text,
+  useWindowDimensions,
+  View,
+  type NativeScrollEvent,
+  type NativeSyntheticEvent,
+} from 'react-native';
 
 import { Blob } from '@/components/Blob';
 import { Button } from '@/components/Button';
-import { Card } from '@/components/Card';
-import { radius, spacing, typography, useThemeColors } from '@/theme';
+import { radius, spacing, typography, useReduceMotion, useThemeColors } from '@/theme';
 
-import { ONBOARDING_CARDS } from '../logic';
+import { ONBOARDING_CARDS, type OnboardingCard } from '../logic';
+import { CalendarIllustration, CycleIllustration, PrivacyIllustration } from './Illustrations';
 
 type Props = {
   /** `backfill` = she chose to add past periods now. */
   onFinish: (backfill: boolean) => void;
 };
 
-/** PLAN.md §7: what it does, the privacy promise, then "add your last few periods". */
+const ILLUSTRATION: Record<
+  OnboardingCard['key'],
+  ComponentType<{ active: boolean; reduceMotion: boolean }>
+> = {
+  welcome: CycleIllustration,
+  privacy: PrivacyIllustration,
+  backfill: CalendarIllustration,
+};
+
+const DOT = 8;
+
+/**
+ * PLAN.md §7 welcome: three swipeable cards (or Next / Back). Pictures drift with the swipe,
+ * text cross-fades, dots follow the finger, and each picture plays a short entrance.
+ */
 export function Onboarding({ onFinish }: Props) {
   const colors = useThemeColors();
+  const reduceMotion = useReduceMotion() === true;
+  const { width } = useWindowDimensions();
   const [index, setIndex] = useState(0);
-  const card = ONBOARDING_CARDS[index];
+  const [scrollX] = useState(() => new Animated.Value(0));
+  const scroller = useRef<ComponentRef<typeof ScrollView>>(null);
   const last = index === ONBOARDING_CARDS.length - 1;
   const stepText = `Step ${index + 1} of ${ONBOARDING_CARDS.length}`;
 
+  const goTo = (i: number) => {
+    setIndex(i);
+    scroller.current?.scrollTo({ x: i * width, animated: !reduceMotion });
+  };
+  const onSettled = (e: NativeSyntheticEvent<NativeScrollEvent>) =>
+    setIndex(Math.round(e.nativeEvent.contentOffset.x / width));
+
+  const around = (i: number) => [(i - 1) * width, i * width, (i + 1) * width];
+  const span = Math.max(1, (ONBOARDING_CARDS.length - 1) * width);
+
   return (
     <View style={styles.container}>
-      <Blob size={300} style={styles.blob} />
-      <View style={styles.middle}>
-        <View accessible accessibilityLabel={stepText} style={styles.dots}>
-          {ONBOARDING_CARDS.map((item, i) => (
+      <Animated.View
+        style={[
+          styles.blob,
+          {
+            transform: [
+              {
+                translateX: scrollX.interpolate({
+                  inputRange: [0, span],
+                  outputRange: [0, -spacing.xxxl * 2],
+                  extrapolate: 'clamp',
+                }),
+              },
+            ],
+          },
+        ]}
+      >
+        <Blob size={320} />
+      </Animated.View>
+
+      <Animated.ScrollView
+        ref={scroller}
+        horizontal
+        pagingEnabled
+        bounces={false}
+        showsHorizontalScrollIndicator={false}
+        scrollEventThrottle={16}
+        onScroll={Animated.event([{ nativeEvent: { contentOffset: { x: scrollX } } }], {
+          useNativeDriver: true,
+        })}
+        onMomentumScrollEnd={onSettled}
+        style={styles.pager}
+      >
+        {ONBOARDING_CARDS.map((card, i) => {
+          const Picture = ILLUSTRATION[card.key];
+          const range = around(i);
+          const drift = scrollX.interpolate({
+            inputRange: range,
+            outputRange: reduceMotion ? [0, 0, 0] : [width * 0.3, 0, -width * 0.3],
+            extrapolate: 'clamp',
+          });
+          const fade = scrollX.interpolate({
+            inputRange: range,
+            outputRange: [0, 1, 0],
+            extrapolate: 'clamp',
+          });
+          const current = i === index;
+          return (
             <View
-              key={item.key}
+              key={card.key}
+              style={[styles.page, { width }]}
+              importantForAccessibility={current ? 'auto' : 'no-hide-descendants'}
+              accessibilityElementsHidden={!current}
+            >
+              <Animated.View style={[styles.picture, { transform: [{ translateX: drift }] }]}>
+                <Picture active={current} reduceMotion={reduceMotion} />
+              </Animated.View>
+              <Animated.View style={[styles.text, { opacity: fade }]}>
+                <Text
+                  accessibilityRole="header"
+                  style={[typography.title, styles.center, { color: colors.text }]}
+                >
+                  {card.title}
+                </Text>
+                <Text style={[typography.body, styles.center, { color: colors.text }]}>
+                  {card.body}
+                </Text>
+                {card.note !== undefined ? (
+                  <Text style={[typography.body, styles.center, { color: colors.textMuted }]}>
+                    {card.note}
+                  </Text>
+                ) : null}
+              </Animated.View>
+            </View>
+          );
+        })}
+      </Animated.ScrollView>
+
+      <View accessible accessibilityLabel={stepText} style={styles.dots}>
+        {ONBOARDING_CARDS.map((card, i) => {
+          const range = around(i);
+          return (
+            <Animated.View
+              key={card.key}
               style={[
                 styles.dot,
-                i === index
-                  ? [styles.dotActive, { backgroundColor: colors.petal }]
-                  : { backgroundColor: colors.border },
+                {
+                  backgroundColor: colors.petal,
+                  opacity: scrollX.interpolate({
+                    inputRange: range,
+                    outputRange: [0.3, 1, 0.3],
+                    extrapolate: 'clamp',
+                  }),
+                  transform: [
+                    {
+                      scale: scrollX.interpolate({
+                        inputRange: range,
+                        outputRange: [1, 1.5, 1],
+                        extrapolate: 'clamp',
+                      }),
+                    },
+                  ],
+                },
               ]}
             />
-          ))}
-        </View>
-        <Card style={styles.card}>
-          <Text accessibilityRole="header" style={[typography.title, { color: colors.text }]}>
-            {card.title}
-          </Text>
-          <Text style={[typography.body, { color: colors.text }]}>{card.body}</Text>
-          {card.note !== undefined ? (
-            <Text style={[typography.body, { color: colors.textMuted }]}>{card.note}</Text>
-          ) : null}
-        </Card>
-        <Text style={[typography.caption, styles.center, { color: colors.textMuted }]}>
-          {stepText}
-        </Text>
+          );
+        })}
       </View>
 
       <View style={styles.actions}>
@@ -60,9 +175,9 @@ export function Onboarding({ onFinish }: Props) {
           </>
         ) : (
           <>
-            <Button label="Next" onPress={() => setIndex(index + 1)} />
+            <Button label="Next" onPress={() => goTo(index + 1)} />
             {index > 0 ? (
-              <Button variant="quiet" label="Back" onPress={() => setIndex(index - 1)} />
+              <Button variant="quiet" label="Back" onPress={() => goTo(index - 1)} />
             ) : (
               <Button
                 variant="quiet"
@@ -78,44 +193,48 @@ export function Onboarding({ onFinish }: Props) {
   );
 }
 
-const DOT = spacing.sm;
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'space-between',
-    gap: spacing.xl,
+    gap: spacing.lg,
   },
   blob: {
+    position: 'absolute',
     top: -spacing.xxxl * 2,
-    left: -spacing.xxxl * 2,
+    left: -spacing.xxxl * 1.5,
   },
-  middle: {
+  pager: {
+    flex: 1,
+  },
+  page: {
     flex: 1,
     justifyContent: 'center',
-    gap: spacing.lg,
+    alignItems: 'center',
+    gap: spacing.xxl,
+    paddingHorizontal: spacing.xl,
+  },
+  picture: {
+    alignItems: 'center',
+  },
+  text: {
+    gap: spacing.md,
+    maxWidth: 420,
+  },
+  center: {
+    textAlign: 'center',
   },
   dots: {
     flexDirection: 'row',
     justifyContent: 'center',
-    gap: spacing.sm,
+    gap: spacing.md,
   },
   dot: {
     width: DOT,
     height: DOT,
     borderRadius: radius.pill,
   },
-  dotActive: {
-    width: DOT * 3,
-  },
-  card: {
-    gap: spacing.lg,
-    padding: spacing.xl,
-  },
-  center: {
-    textAlign: 'center',
-  },
   actions: {
     gap: spacing.sm,
+    paddingHorizontal: spacing.xl,
   },
 });

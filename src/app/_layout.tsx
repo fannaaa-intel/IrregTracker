@@ -20,7 +20,7 @@ import { KindNotesSync } from '@/features/reminders/components/KindNotesSync';
 import { UpdateBanner } from '@/features/updates/components/UpdateBanner';
 import { UpdateRow } from '@/features/updates/components/UpdateRow';
 import { useAutoUpdateCheck, useRecoveryUpdateCheck } from '@/features/updates/hooks';
-import { useThemeColors } from '@/theme';
+import { useReduceMotion, useThemeColors } from '@/theme';
 
 // Keep the splash screen up until fonts are loaded and the encrypted DB has opened (or failed).
 SplashScreen.preventAutoHideAsync();
@@ -36,6 +36,7 @@ export default function RootLayout() {
   const dbState = useOpenDatabase();
   const scheme = useColorScheme();
   const colors = useThemeColors();
+  const reduceMotion = useReduceMotion();
   useAutoUpdateCheck();
   useRecoveryUpdateCheck(dbState.status === 'error');
   const fontsReady = fontsLoaded || fontError !== null;
@@ -78,7 +79,13 @@ export default function RootLayout() {
         <DatabaseProvider db={dbState.db}>
           <AppLockGate>
             <Stack
-              screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.bg } }}
+              screenOptions={{
+                headerShown: false,
+                contentStyle: { backgroundColor: colors.bg },
+                // Screens rise and fade in softly, matching the opening animation.
+                animation: reduceMotion === true ? 'none' : 'fade_from_bottom',
+                animationDuration: 250,
+              }}
             >
               <Stack.Screen name="(tabs)" />
               <Stack.Screen name="log/[date]" options={{ presentation: 'modal' }} />

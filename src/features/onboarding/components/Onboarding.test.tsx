@@ -9,6 +9,8 @@ describe('Onboarding', () => {
 
     expect(screen.getByText('A calm place for your cycle')).toBeTruthy();
     expect(screen.getByLabelText('Step 1 of 3')).toBeTruthy();
+    // Cards off screen are hidden from screen readers until swiped to.
+    expect(screen.queryByText('Private by design')).toBeNull();
 
     await fireEvent.press(screen.getByText('Next'));
     expect(screen.getByText('Private by design')).toBeTruthy();
