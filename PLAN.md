@@ -275,7 +275,8 @@ Show one gentle card at a time on Home, dismissible, with a "Why am I seeing thi
 - [x] `expo-updates`: auto check 8 PM–12 AM (phone clock) while open, max every 30 min → "New version ready · Restart"; Settings → Check for updates
 - [x] CLAUDE.md §1.1 exception approved by the owner
 - [x] `eas.json` preview profile (APK, channel `preview`); bundle ID `com.fannaaa.cycle`
-- [ ] Owner: Expo login, `eas init` + `eas update:configure`, first cloud APK → Google Drive
+- [x] Expo login, project linked (`@sersi07/cycle-tracker`), EAS Update url set
+- [ ] First cloud APK → Google Drive
 - [ ] Verify on her phone: app opens offline; a test update arrives between 8 PM and 12 AM
 
 ### M5: Flags + onboarding

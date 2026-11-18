@@ -29,9 +29,8 @@ Read this after PLAN.md, CLAUDE.md, docs/DESIGN.md and docs/HEALTH_RULES.md.
 - Settings screen now has App (updates) and About (not a medical device / not contraception).
 - CLAUDE.md §1.1 exception approved with the precise wording (mentions IP + random install ID).
 - Bundle ID `com.fannaaa.cycle` (Android + iOS), `versionCode` 1, `eas.json` preview = APK.
-- **Still missing until the owner logs in:** `extra.eas.projectId`, `owner` and `updates.url` in
-  app.json. They come from `eas init` + `eas update:configure`. The first APK must have
-  `updates.url`, or it can never update.
+- Expo project linked (Nov 18): owner `sersi07`, project `@sersi07/cycle-tracker`, `projectId` and
+  `updates.url` in app.json. Next: owner runs the first `eas build -p android --profile preview`.
 
 ## M5: what's done (Nov 18)
 
