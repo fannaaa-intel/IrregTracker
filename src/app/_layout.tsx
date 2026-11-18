@@ -15,7 +15,8 @@ import { useOpenDatabase } from '@/db/use-open-database';
 import { AppLockGate } from '@/features/lock/components/AppLockGate';
 import { KindNotesSync } from '@/features/reminders/components/KindNotesSync';
 import { UpdateBanner } from '@/features/updates/components/UpdateBanner';
-import { useAutoUpdateCheck } from '@/features/updates/hooks';
+import { UpdateRow } from '@/features/updates/components/UpdateRow';
+import { useAutoUpdateCheck, useRecoveryUpdateCheck } from '@/features/updates/hooks';
 import { useThemeColors } from '@/theme';
 
 // Keep the splash screen up until fonts are loaded and the encrypted DB has opened (or failed).
@@ -31,6 +32,7 @@ export default function RootLayout() {
   const scheme = useColorScheme();
   const colors = useThemeColors();
   useAutoUpdateCheck();
+  useRecoveryUpdateCheck(dbState.status === 'error');
   const fontsReady = fontsLoaded || fontError !== null;
   const ready = fontsReady && dbState.status !== 'opening';
 
@@ -61,7 +63,9 @@ export default function RootLayout() {
     <ThemeProvider value={navTheme}>
       <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
       {dbState.status === 'error' ? (
-        <DatabaseErrorScreen kind={dbState.kind} />
+        <DatabaseErrorScreen kind={dbState.kind}>
+          <UpdateRow />
+        </DatabaseErrorScreen>
       ) : (
         <DatabaseProvider db={dbState.db}>
           <AppLockGate>

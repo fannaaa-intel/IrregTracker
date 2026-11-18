@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { StyleSheet, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -25,11 +26,13 @@ const copy: Record<DbErrorKind, { title: string; body: string }> = {
 
 type Props = {
   kind: DbErrorKind;
+  /** Extra actions, such as checking for an app update that fixes the problem. */
+  children?: ReactNode;
 };
 
 // Shown instead of the app when the encrypted database can't be opened. The app never falls
 // back to unencrypted storage (CLAUDE.md §1.2).
-export function DatabaseErrorScreen({ kind }: Props) {
+export function DatabaseErrorScreen({ kind, children }: Props) {
   const colors = useThemeColors();
   const { title, body } = copy[kind];
 
@@ -39,6 +42,7 @@ export function DatabaseErrorScreen({ kind }: Props) {
         {title}
       </Text>
       <Text style={[typography.body, styles.body, { color: colors.textMuted }]}>{body}</Text>
+      {children}
     </SafeAreaView>
   );
 }
@@ -51,5 +55,6 @@ const styles = StyleSheet.create({
   },
   body: {
     marginTop: spacing.md,
+    marginBottom: spacing.xl,
   },
 });

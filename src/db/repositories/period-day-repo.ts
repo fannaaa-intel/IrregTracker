@@ -1,5 +1,6 @@
 import type { LocalDate } from '../../lib/date';
 import type { Flow } from '../../theme';
+import { runInTransaction } from '../transaction';
 import type { Db } from '../types';
 
 export type PeriodDay = {
@@ -47,7 +48,7 @@ export const periodDayRepo = {
     days: readonly { date: LocalDate; flow: Flow }[],
     now: string = nowTimestamp(),
   ): Promise<void> {
-    await db.withExclusiveTransactionAsync(async (txn) => {
+    await runInTransaction(db, async (txn) => {
       for (const day of days) {
         await txn.runAsync(UPSERT_SQL, [day.date, day.flow, now, now]);
       }

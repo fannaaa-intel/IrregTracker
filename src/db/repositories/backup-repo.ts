@@ -1,3 +1,4 @@
+import { runInTransaction } from '../transaction';
 import type { Db } from '../types';
 
 // Whole-database snapshot for encrypted backups (features/backup). SQL stays here (CLAUDE.md §4.2).
@@ -47,7 +48,7 @@ export const backupRepo = {
    * changes. Settings in `keepSettings` (device-only) keep their current values.
    */
   async replaceAll(db: Db, data: DbSnapshot, keepSettings: readonly string[] = []): Promise<void> {
-    await db.withExclusiveTransactionAsync(async (txn) => {
+    await runInTransaction(db, async (txn) => {
       await txn.runAsync('DELETE FROM period_day;');
       await txn.runAsync('DELETE FROM cycle_tag;');
       const placeholders = keepSettings.map(() => '?').join(', ');

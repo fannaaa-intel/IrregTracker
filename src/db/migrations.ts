@@ -1,5 +1,6 @@
 import type { Db } from './types';
 import { DbOpenError } from './errors';
+import { runInTransaction } from './transaction';
 
 // Schema migrations tracked with PRAGMA user_version (CLAUDE.md §4.7).
 // Append new steps only. Never edit a step that has shipped.
@@ -56,7 +57,7 @@ export async function runMigrations(
   }
 
   for (const step of steps.slice(current)) {
-    await db.withExclusiveTransactionAsync(async (txn) => {
+    await runInTransaction(db, async (txn) => {
       await txn.execAsync(step.up);
       await txn.execAsync(`PRAGMA user_version = ${step.version};`);
     });

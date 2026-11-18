@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { AppState } from 'react-native';
 
-import { localHour } from '@/lib/date';
+import { localHour, nowMs } from '@/lib/date';
 
 import {
   checkForAppUpdate,
@@ -21,7 +21,7 @@ export function useAutoUpdateCheck(): void {
     const maybeCheck = () => {
       const allowed = shouldAutoCheck({
         hour: localHour(),
-        nowMs: Date.now(),
+        nowMs: nowMs(),
         lastCheckMs: lastUpdateCheck(),
         status: getUpdateStatus(),
       });
@@ -33,4 +33,14 @@ export function useAutoUpdateCheck(): void {
     });
     return () => sub.remove();
   }, []);
+}
+
+/**
+ * Recovery: while the app can't open its storage, check for a fixed version right away, outside
+ * the 8 PM – 12 AM window. A downloaded update also loads by itself on the next launch.
+ */
+export function useRecoveryUpdateCheck(active: boolean): void {
+  useEffect(() => {
+    if (active && updatesAvailable() && getUpdateStatus() === 'idle') void checkForAppUpdate();
+  }, [active]);
 }

@@ -49,15 +49,12 @@ export function openMemoryDb(): Db {
       const result = raw.prepare(sql).run(...flatten(params));
       return { changes: Number(result.changes), lastInsertRowId: Number(result.lastInsertRowid) };
     },
-    withExclusiveTransactionAsync: async (task: (txn: unknown) => Promise<void>) => {
-      raw.exec('BEGIN EXCLUSIVE');
-      try {
-        await task(db);
-        raw.exec('COMMIT');
-      } catch (error) {
-        raw.exec('ROLLBACK');
-        throw error;
-      }
+    // On a real phone this opens a second, unkeyed SQLCipher connection and fails. Make any use
+    // fail in tests too, so it can't slip back in (see src/db/transaction.ts).
+    withExclusiveTransactionAsync: async () => {
+      throw new Error(
+        'Use runInTransaction (src/db/transaction.ts), not withExclusiveTransactionAsync.',
+      );
     },
     closeAsync: async () => raw.close(),
   };

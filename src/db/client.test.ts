@@ -32,9 +32,10 @@ function createFakeDb({
       if (sql.startsWith('PRAGMA user_version')) return { user_version: 0 };
       return null;
     }),
-    withExclusiveTransactionAsync: jest.fn(
-      async (task: (txn: unknown) => Promise<void>): Promise<void> => task(db),
-    ),
+    // On a phone this opens a second connection without the key; it must never be used.
+    withExclusiveTransactionAsync: jest.fn(async () => {
+      throw new Error('unkeyed second connection');
+    }),
     closeAsync: jest.fn(async () => undefined),
   };
   jest.mocked(openDatabaseAsync).mockResolvedValue(db as never);
@@ -55,6 +56,10 @@ describe('openEncryptedDb', () => {
     expect(calls[0]).toBe(`PRAGMA key = "x'${KEY}'";`);
     expect(calls[1]).toBe('PRAGMA cipher_version;');
     expect(calls.some((sql) => sql.startsWith('CREATE TABLE period_day'))).toBe(true);
+    // Migrations run on this same keyed connection (the v1.2.0 first-launch bug).
+    expect(calls).toContain('BEGIN IMMEDIATE;');
+    expect(calls).toContain('COMMIT;');
+    expect(db.withExclusiveTransactionAsync).not.toHaveBeenCalled();
     expect(db.closeAsync).not.toHaveBeenCalled();
   });
 
