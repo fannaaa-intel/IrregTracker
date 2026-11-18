@@ -6,13 +6,14 @@ import { useFonts } from 'expo-font';
 import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useColorScheme } from 'react-native';
 
 import { DatabaseErrorScreen } from '@/components/DatabaseErrorScreen';
 import { DatabaseProvider } from '@/db/DatabaseProvider';
 import { useOpenDatabase } from '@/db/use-open-database';
 import { AppLockGate } from '@/features/lock/components/AppLockGate';
+import { OpeningOverlay } from '@/features/opening/components/OpeningOverlay';
 import { KindNotesSync } from '@/features/reminders/components/KindNotesSync';
 import { UpdateBanner } from '@/features/updates/components/UpdateBanner';
 import { UpdateRow } from '@/features/updates/components/UpdateRow';
@@ -35,6 +36,9 @@ export default function RootLayout() {
   useRecoveryUpdateCheck(dbState.status === 'error');
   const fontsReady = fontsLoaded || fontError !== null;
   const ready = fontsReady && dbState.status !== 'opening';
+  // The opening animation covers the app from the moment the native splash hides.
+  const [opening, setOpening] = useState(true);
+  const endOpening = useCallback(() => setOpening(false), []);
 
   useEffect(() => {
     if (ready) {
@@ -85,6 +89,7 @@ export default function RootLayout() {
           <KindNotesSync />
         </DatabaseProvider>
       )}
+      {opening ? <OpeningOverlay onDone={endOpening} /> : null}
     </ThemeProvider>
   );
 }

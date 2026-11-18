@@ -6,3 +6,5 @@ export * from './tokens';
 export function useThemeColors(): Colors {
   return useColorScheme() === 'dark' ? darkColors : lightColors;
 }
+
+export { useReduceMotion } from './motion';
