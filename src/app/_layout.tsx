@@ -61,7 +61,10 @@ export default function RootLayout() {
         <DatabaseProvider db={dbState.db}>
           <Stack
             screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.bg } }}
-          />
+          >
+            <Stack.Screen name="(tabs)" />
+            <Stack.Screen name="log/[date]" options={{ presentation: 'modal' }} />
+          </Stack>
         </DatabaseProvider>
       )}
     </ThemeProvider>

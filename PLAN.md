@@ -260,9 +260,9 @@ Show one gentle card at a time on Home, dismissible, with a "Why am I seeing thi
 - [x] `features/flags` + tests (each rule, boundary values)
 
 ### M3: Logging UI
-- [ ] Calendar month grid component
-- [ ] Day editor modal with flow chips
-- [ ] Backfill multi-select mode
+- [x] Calendar month grid component
+- [x] Day editor modal with flow chips
+- [x] Backfill multi-select mode
 
 ### M4: Home + History
 - [ ] Cycle ring + day counter
