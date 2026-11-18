@@ -1,18 +1,5 @@
+import { contrastRatio, WCAG_AA_TEXT } from '../lib/contrast';
 import { darkColors, lightColors, type ColorToken, type Colors } from './tokens';
-
-// WCAG 2.x relative luminance + contrast ratio.
-function luminance(hex: string): number {
-  const [r, g, b] = [1, 3, 5].map((i) => {
-    const c = parseInt(hex.slice(i, i + 2), 16) / 255;
-    return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
-  });
-  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
-}
-
-function contrast(a: string, b: string): number {
-  const [hi, lo] = [luminance(a), luminance(b)].sort((x, y) => y - x);
-  return (hi + 0.05) / (lo + 0.05);
-}
 
 // Text/background pairs that must meet WCAG AA (4.5:1). See CLAUDE.md §6.2 and DESIGN.md §1.
 const textPairs: [fg: ColorToken, bg: ColorToken][] = [
@@ -44,9 +31,10 @@ describe('theme tokens', () => {
 
   it.each(palettes)('%s text colors meet WCAG AA contrast', (_name, colors) => {
     for (const [fg, bg] of textPairs) {
-      expect({ pair: `${fg} on ${bg}`, ratio: contrast(colors[fg], colors[bg]) >= 4.5 }).toEqual({
+      const ratio = contrastRatio(colors[fg], colors[bg]);
+      expect({ pair: `${fg} on ${bg}`, passes: ratio >= WCAG_AA_TEXT }).toEqual({
         pair: `${fg} on ${bg}`,
-        ratio: true,
+        passes: true,
       });
     }
   });
