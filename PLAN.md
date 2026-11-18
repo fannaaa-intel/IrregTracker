@@ -265,10 +265,10 @@ Show one gentle card at a time on Home, dismissible, with a "Why am I seeing thi
 - [x] Backfill multi-select mode
 
 ### M4: Home + History
-- [ ] Cycle ring + day counter
-- [ ] Prediction window text + confidence chip
-- [ ] History stats, bar chart, cycle list
-- [ ] Cycle detail + tagging
+- [x] Cycle ring + day counter
+- [x] Prediction window text + confidence chip
+- [x] History stats, bar chart, cycle list
+- [x] Cycle detail + tagging
 
 ### M5: Flags + onboarding
 - [ ] Flag cards + explanation screen
