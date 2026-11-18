@@ -3,7 +3,9 @@ import { Animated, Easing, Image, StyleSheet, View } from 'react-native';
 import Svg, { Circle } from 'react-native-svg';
 
 import splashImage from '@/assets/images/splash-icon.png';
-import { radius, spacing, useReduceMotion, useThemeColors } from '@/theme';
+import { darkColors, lightColors, radius, spacing, useReduceMotion, useThemeColors } from '@/theme';
+
+import { getPhoneSchemeAtLaunch } from '../../appearance/store';
 
 import { openingTimeline, SPLASH_IMAGE_SIZE, type Step } from '../timeline';
 
@@ -38,11 +40,15 @@ export function OpeningOverlay({ onDone }: Props) {
   const [ring] = useState(() => new Animated.Value(0));
   const [dots] = useState(() => [0, 1, 2, 3].map(() => new Animated.Value(0)));
   const [exit] = useState(() => new Animated.Value(0));
+  const [bgMix] = useState(() => new Animated.Value(0));
+  // The native splash follows the phone's theme; ease from it into the app's chosen theme.
+  const splashBg = getPhoneSchemeAtLaunch() === 'dark' ? darkColors.bg : lightColors.bg;
 
   useEffect(() => {
     if (reduceMotion === null) return;
     const t = openingTimeline(reduceMotion);
     const animation = Animated.parallel([
+      timing(bgMix, 1, { delay: 0, duration: 200 }, false),
       ...(reduceMotion ? [] : [timing(ring, 1, t.ring, false)]),
       ...t.dots.map((step, i) => timing(dots[i], 1, step)),
       timing(exit, 1, t.exit),
@@ -57,7 +63,7 @@ export function OpeningOverlay({ onDone }: Props) {
       clearTimeout(start);
       animation.stop();
     };
-  }, [reduceMotion, ring, dots, exit, onDone]);
+  }, [reduceMotion, ring, dots, exit, bgMix, onDone]);
 
   const fadeOut = exit.interpolate({ inputRange: [0, 1], outputRange: [1, 0] });
   const lift = exit.interpolate({ inputRange: [0, 1], outputRange: [1, 1.04] });
@@ -68,12 +74,19 @@ export function OpeningOverlay({ onDone }: Props) {
       pointerEvents="none"
       accessibilityElementsHidden
       importantForAccessibility="no-hide-descendants"
-      style={[
-        StyleSheet.absoluteFill,
-        styles.center,
-        { backgroundColor: colors.bg, opacity: fadeOut },
-      ]}
+      style={[StyleSheet.absoluteFill, styles.center, { opacity: fadeOut }]}
     >
+      <Animated.View
+        style={[
+          StyleSheet.absoluteFill,
+          {
+            backgroundColor: bgMix.interpolate({
+              inputRange: [0, 1],
+              outputRange: [splashBg, colors.bg],
+            }),
+          },
+        ]}
+      />
       <Animated.View style={[styles.center, { transform: [{ scale: lift }] }]}>
         <Svg width={RING_SIZE} height={RING_SIZE} style={styles.ring}>
           <AnimatedCircle

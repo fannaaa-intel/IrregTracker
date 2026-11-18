@@ -2,6 +2,7 @@ import { ScrollView, StyleSheet, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Card } from '@/components/Card';
+import { AppearanceSection } from '@/features/appearance/components/AppearanceSection';
 import { AppLockSection, YourDataSection } from '@/features/privacy/components/PrivacySections';
 import { KindNotesSection } from '@/features/reminders/components/KindNotesSection';
 import { UpdateRow } from '@/features/updates/components/UpdateRow';
@@ -17,6 +18,7 @@ export default function SettingsScreen() {
           Settings
         </Text>
 
+        <AppearanceSection />
         <KindNotesSection />
         <AppLockSection />
         <YourDataSection />

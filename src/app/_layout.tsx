@@ -12,6 +12,8 @@ import { useColorScheme } from 'react-native';
 import { DatabaseErrorScreen } from '@/components/DatabaseErrorScreen';
 import { DatabaseProvider } from '@/db/DatabaseProvider';
 import { useOpenDatabase } from '@/db/use-open-database';
+import { AppearanceFader } from '@/features/appearance/components/AppearanceFader';
+import { applyStoredAppearance } from '@/features/appearance/store';
 import { AppLockGate } from '@/features/lock/components/AppLockGate';
 import { OpeningOverlay } from '@/features/opening/components/OpeningOverlay';
 import { KindNotesSync } from '@/features/reminders/components/KindNotesSync';
@@ -22,6 +24,8 @@ import { useThemeColors } from '@/theme';
 
 // Keep the splash screen up until fonts are loaded and the encrypted DB has opened (or failed).
 SplashScreen.preventAutoHideAsync();
+// Light / dark choice applies before the first frame, so the app never flashes the wrong theme.
+applyStoredAppearance();
 
 export default function RootLayout() {
   const [fontsLoaded, fontError] = useFonts({
@@ -90,6 +94,7 @@ export default function RootLayout() {
         </DatabaseProvider>
       )}
       {opening ? <OpeningOverlay onDone={endOpening} /> : null}
+      <AppearanceFader />
     </ThemeProvider>
   );
 }

@@ -2,7 +2,8 @@ import { Tabs } from 'expo-router/js-tabs';
 import { CalendarDays, ChartColumn, House, Settings, type LucideIcon } from 'lucide-react-native';
 import { StyleSheet, type ColorValue } from 'react-native';
 
-import { typography, useThemeColors } from '@/theme';
+import { TabButton } from '@/components/TabButton';
+import { typography, useReduceMotion, useThemeColors } from '@/theme';
 
 // DESIGN.md §4.6: line icons, stroke 1.5, size 22, textMuted (primary when active).
 const ICON_SIZE = 22;
@@ -19,6 +20,7 @@ function tabIcon(Icon: LucideIcon) {
 
 export default function TabsLayout() {
   const colors = useThemeColors();
+  const reduceMotion = useReduceMotion();
 
   return (
     <Tabs
@@ -33,6 +35,10 @@ export default function TabsLayout() {
           borderTopWidth: StyleSheet.hairlineWidth,
         },
         tabBarLabelStyle: typography.label,
+        // No Android ripple on the tabs; a quiet opacity press instead.
+        tabBarButton: (props) => <TabButton {...props} />,
+        // Soft cross-fade between tabs (respects the system's animation settings).
+        animation: reduceMotion ? 'none' : 'fade',
       }}
     >
       <Tabs.Screen name="index" options={{ title: 'Home', tabBarIcon: tabIcon(House) }} />
