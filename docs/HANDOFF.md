@@ -38,6 +38,18 @@ Read this after PLAN.md, CLAUDE.md, docs/DESIGN.md and docs/HEALTH_RULES.md.
 - Expo project linked (Nov 18): owner `sersi07`, project `@sersi07/cycle-tracker`, `projectId` and
   `updates.url` in app.json. Next: owner runs the first `eas build -p android --profile preview`.
 
+## After the first install (Nov 18)
+
+- **Bug found on the phone:** v1.2.0 showed "couldn't open its storage" on first launch.
+  expo-sqlite's `withExclusiveTransactionAsync` opens a second connection without `PRAGMA key`.
+  Fixed with `src/db/transaction.ts` (`runInTransaction`, same keyed connection). **Never use
+  `withExclusiveTransactionAsync`**; the test DB now throws if anything does.
+- If storage fails, the error screen now checks for an update at once (outside 8 PM–12 AM).
+- Opening animation: `features/opening/` (ring + petal dots, ~0.8 s, Reduce motion = fade).
+- Published as EAS updates to channel `preview`, runtime 1.2.0 (`9719bb67…` fix,
+  `e4c1ed19…` fix + animation). Publish with:
+  `npx eas-cli@latest update --channel preview --environment preview --platform android -m "…"`
+
 ## M6 + M7 (Nov 18)
 
 - Backup (`features/backup/`): `crypto.ts` AES-256-GCM + PBKDF2-SHA256 (iterations stored in the
