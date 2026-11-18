@@ -13,7 +13,7 @@ import {
 } from './thresholds';
 
 /** Variation is measured across this many recent counted cycles (PLAN.md §6). */
-const VARIATION_WINDOW = 6;
+export const VARIATION_WINDOW = 6;
 
 export type FlagType =
   'no-period' | 'long-period' | 'short-cycle' | 'long-cycle' | 'high-variation';
@@ -73,4 +73,13 @@ export function detectFlags(
   }
 
   return flags;
+}
+
+/** The one card Home shows: the most important flag she hasn't dismissed, or null. */
+export function pickFlag(
+  flags: readonly HealthFlag[],
+  dismissed: readonly string[],
+): HealthFlag | null {
+  const hidden = new Set(dismissed);
+  return flags.find((f) => !hidden.has(f.id)) ?? null;
 }

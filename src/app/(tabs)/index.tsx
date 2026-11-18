@@ -1,4 +1,4 @@
-import { useRouter } from 'expo-router';
+import { Redirect, useRouter } from 'expo-router';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -8,6 +8,9 @@ import { Card } from '@/components/Card';
 import { CycleRing } from '@/features/cycles/components/CycleRing';
 import { useCycleOverview } from '@/features/cycles/hooks';
 import { ringModel } from '@/features/cycles/summary';
+import { FlagCard } from '@/features/flags/components/FlagCard';
+import { useFlagCard } from '@/features/flags/hooks';
+import { useOnboardingState } from '@/features/onboarding/hooks';
 import { PredictionCard } from '@/features/prediction/components/PredictionCard';
 import { format, todayLocal } from '@/lib/date';
 import { spacing, typography, useThemeColors } from '@/theme';
@@ -17,6 +20,8 @@ export default function HomeScreen() {
   const router = useRouter();
   const today = todayLocal();
   const overview = useCycleOverview(today);
+  const { flag, dismiss } = useFlagCard(overview, today);
+  const onboarding = useOnboardingState();
 
   const logToday = () => router.push({ pathname: '/log/[date]', params: { date: today } });
   const open = overview?.history.open ?? null;
@@ -24,6 +29,9 @@ export default function HomeScreen() {
     overview !== undefined && open !== null
       ? ringModel(open, overview.prediction, today, overview.summary?.typical ?? null)
       : null;
+
+  if (onboarding === 'loading') return null;
+  if (onboarding === 'needed') return <Redirect href="/onboarding" />;
 
   return (
     <SafeAreaView edges={['top']} style={[styles.screen, { backgroundColor: colors.bg }]}>
@@ -56,6 +64,13 @@ export default function HomeScreen() {
             {ring !== null ? <CycleRing model={ring} /> : null}
             <PredictionCard prediction={overview.prediction} />
             <Button label="Log today" onPress={logToday} />
+            {flag !== null ? (
+              <FlagCard
+                flag={flag}
+                onWhy={() => router.push({ pathname: '/flag/[type]', params: { type: flag.type } })}
+                onDismiss={() => void dismiss(flag.id)}
+              />
+            ) : null}
           </>
         )}
       </ScrollView>

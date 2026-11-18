@@ -12,7 +12,8 @@ Read this after PLAN.md, CLAUDE.md, docs/DESIGN.md and docs/HEALTH_RULES.md.
 | M3 Logging UI | Done (calendar, day editor modal, backfill) |
 | M4 Home + History | Done, merged to `main` and pushed (Nov 18) |
 | Release & updates | Code done on branch `release-updates`; owner still has to log in to Expo and build |
-| Next | M5 |
+| M5 Flags + onboarding | Done on branch `m5-flags-onboarding` (stacked on `release-updates`), not pushed |
+| Next | M6 Privacy features |
 
 - `main` on GitHub (`fannaaa-intel/IrregTracker`) = M0–M4. Push only when the owner says so.
 - Typecheck, lint (0 warnings), Prettier and all tests pass; Android bundles with `npx expo export`.
@@ -31,6 +32,17 @@ Read this after PLAN.md, CLAUDE.md, docs/DESIGN.md and docs/HEALTH_RULES.md.
 - **Still missing until the owner logs in:** `extra.eas.projectId`, `owner` and `updates.url` in
   app.json. They come from `eas init` + `eas update:configure`. The first APK must have
   `updates.url`, or it can never update.
+
+## M5: what's done (Nov 18)
+
+- Flags: `features/flags/copy.ts` holds the HEALTH_RULES.md card templates word for word, plus the
+  "Why am I seeing this?" text (why / good to know / when to talk to a doctor), numbers imported
+  from `thresholds.ts`. `pickFlag` shows the most important flag not yet dismissed. Dismissed IDs
+  (`type:cycleStart`) live in `setting.dismissed_flags`, so a new occurrence shows again.
+- FlagCard sits on Home under "Log today"; route `/flag/[type]` is the explanation screen.
+- Onboarding: 3 cards (`features/onboarding/logic.ts`), shown only when `setting.onboarding_done`
+  is unset **and** nothing is logged (so restores or existing installs skip it). "Add past
+  periods" opens `/calendar?backfill=1`, which starts backfill mode. Skip / Not now also finish it.
 
 ## Original brief: Release & updates (agreed with the owner)
 

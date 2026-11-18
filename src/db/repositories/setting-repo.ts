@@ -4,6 +4,8 @@ import type { Db } from '../types';
 // The `setting` table stores one JSON value per key. Each key has a reader that validates
 // what comes back, so a bad or old value falls back to a safe default instead of crashing.
 const CONFIRMED_SHORT_CYCLES = 'confirmed_short_cycles';
+const DISMISSED_FLAGS = 'dismissed_flags';
+const ONBOARDING_DONE = 'onboarding_done';
 
 async function readJson(db: Db, key: string): Promise<unknown> {
   const row = await db.getFirstAsync<{ value: string }>(
@@ -38,5 +40,26 @@ export const settingRepo = {
     const current = await settingRepo.getConfirmedShortCycles(db);
     if (current.includes(cycleStart)) return;
     await writeJson(db, CONFIRMED_SHORT_CYCLES, [...current, cycleStart].sort());
+  },
+
+  /** IDs of flag cards she dismissed (`type:cycleStart`, see features/flags/logic.ts). */
+  async getDismissedFlags(db: Db): Promise<string[]> {
+    const value = await readJson(db, DISMISSED_FLAGS);
+    if (!Array.isArray(value)) return [];
+    return value.filter((item): item is string => typeof item === 'string');
+  },
+
+  async dismissFlag(db: Db, flagId: string): Promise<void> {
+    const current = await settingRepo.getDismissedFlags(db);
+    if (current.includes(flagId)) return;
+    await writeJson(db, DISMISSED_FLAGS, [...current, flagId].sort());
+  },
+
+  async isOnboardingDone(db: Db): Promise<boolean> {
+    return (await readJson(db, ONBOARDING_DONE)) === true;
+  },
+
+  async setOnboardingDone(db: Db): Promise<void> {
+    await writeJson(db, ONBOARDING_DONE, true);
   },
 };

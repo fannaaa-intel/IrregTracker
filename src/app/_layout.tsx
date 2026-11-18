@@ -68,6 +68,8 @@ export default function RootLayout() {
             <Stack.Screen name="(tabs)" />
             <Stack.Screen name="log/[date]" options={{ presentation: 'modal' }} />
             <Stack.Screen name="cycle/[id]" />
+            <Stack.Screen name="flag/[type]" />
+            <Stack.Screen name="onboarding" options={{ gestureEnabled: false }} />
           </Stack>
           <UpdateBanner />
         </DatabaseProvider>

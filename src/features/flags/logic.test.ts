@@ -8,7 +8,7 @@ import {
   type HistoryFixture,
 } from '../__fixtures__/histories';
 import { deriveCycles, type CycleTag } from '../cycles/logic';
-import { detectFlags } from './logic';
+import { detectFlags, pickFlag, type HealthFlag } from './logic';
 
 function flagsFor(fixture: HistoryFixture, { tags = [] as CycleTag[], daysAfterStart = 3 } = {}) {
   return detectFlags(deriveCycles(fixture.days), tags, addDays(fixture.lastStart, daysAfterStart));
@@ -99,5 +99,35 @@ describe('detectFlags', () => {
   it('lists flags most important first', () => {
     expect(types(latestPeriodOf(9), { daysAfterStart: 120 })).toEqual(['no-period', 'long-period']);
     expect(types(veryIrregular)).toEqual(['long-cycle', 'high-variation']);
+  });
+});
+
+describe('pickFlag', () => {
+  const flags: HealthFlag[] = [
+    { type: 'no-period', id: 'no-period:2026-01-01', days: 95 },
+    { type: 'long-period', id: 'long-period:2026-01-01', days: 9 },
+  ];
+
+  it('shows the most important flag first', () => {
+    expect(pickFlag(flags, [])).toBe(flags[0]);
+  });
+
+  it('skips dismissed flags and shows the next one', () => {
+    expect(pickFlag(flags, ['no-period:2026-01-01'])).toBe(flags[1]);
+  });
+
+  it('shows nothing when every flag was dismissed or there are none', () => {
+    expect(
+      pickFlag(
+        flags,
+        flags.map((f) => f.id),
+      ),
+    ).toBeNull();
+    expect(pickFlag([], [])).toBeNull();
+  });
+
+  it('shows a new occurrence of a dismissed type again', () => {
+    const next = { type: 'no-period' as const, id: 'no-period:2026-06-01', days: 90 };
+    expect(pickFlag([next], ['no-period:2026-01-01'])).toBe(next);
   });
 });

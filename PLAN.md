@@ -279,8 +279,8 @@ Show one gentle card at a time on Home, dismissible, with a "Why am I seeing thi
 - [ ] Verify on her phone: app opens offline; a test update arrives between 8 PM and 12 AM
 
 ### M5: Flags + onboarding
-- [ ] Flag cards + explanation screen
-- [ ] 3-card onboarding with backfill
+- [x] Flag cards + explanation screen
+- [x] 3-card onboarding with backfill
 
 ### M6: Privacy features
 - [ ] App lock + blur on background

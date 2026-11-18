@@ -1,4 +1,5 @@
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useEffect } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -15,6 +16,14 @@ export default function CalendarScreen() {
   const router = useRouter();
   const calendar = useCalendar(todayLocal());
   const backfill = calendar.mode === 'backfill';
+  // Onboarding opens the calendar with ?backfill=1 to start straight in multi-select mode.
+  const params = useLocalSearchParams<{ backfill?: string }>();
+  const { startBackfill } = calendar;
+  useEffect(() => {
+    if (params.backfill !== '1') return;
+    startBackfill();
+    router.setParams({ backfill: undefined });
+  }, [params.backfill, startBackfill, router]);
 
   const onDayPress = (date: string) => {
     if (backfill) calendar.toggleSelected(date);
