@@ -1,4 +1,17 @@
-import { addDays, diffDays, format, isLocalDate, parse, todayLocal } from './date';
+import {
+  addDays,
+  addMonths,
+  daysInMonth,
+  diffDays,
+  firstDayOf,
+  format,
+  formatMonth,
+  isLocalDate,
+  monthOf,
+  parse,
+  todayLocal,
+  weekday,
+} from './date';
 
 describe('isLocalDate / parse', () => {
   it.each(['2026-01-01', '2026-12-31', '2028-02-29'])('accepts %s', (value) => {
@@ -73,5 +86,44 @@ describe('format', () => {
   it('shows a short month and day, optionally with the year', () => {
     expect(format('2026-12-03', { locale: 'en-US' })).toBe('Dec 3');
     expect(format('2026-12-03', { locale: 'en-US', withYear: true })).toBe('Dec 3, 2026');
+  });
+
+  it('can show the long month and the weekday', () => {
+    expect(format('2026-12-03', { locale: 'en-US', month: 'long' })).toBe('December 3');
+    expect(format('2026-12-03', { locale: 'en-US', month: 'long', withWeekday: true })).toBe(
+      'Thursday, December 3',
+    );
+  });
+});
+
+describe('weekday', () => {
+  it('is 0 for Sunday through 6 for Saturday', () => {
+    expect(weekday('2026-03-01')).toBe(0); // Sunday
+    expect(weekday('2026-03-07')).toBe(6); // Saturday
+    expect(weekday('2028-02-29')).toBe(2); // Tuesday
+  });
+});
+
+describe('months', () => {
+  it('finds the month of a date and its first day', () => {
+    expect(monthOf('2026-03-18')).toEqual({ year: 2026, month: 3 });
+    expect(firstDayOf({ year: 2026, month: 3 })).toBe('2026-03-01');
+  });
+
+  it('adds months across year boundaries, both ways', () => {
+    expect(addMonths({ year: 2026, month: 12 }, 1)).toEqual({ year: 2027, month: 1 });
+    expect(addMonths({ year: 2026, month: 1 }, -1)).toEqual({ year: 2025, month: 12 });
+    expect(addMonths({ year: 2026, month: 5 }, -17)).toEqual({ year: 2024, month: 12 });
+  });
+
+  it('knows how many days each month has, including leap Februaries', () => {
+    expect(daysInMonth({ year: 2026, month: 2 })).toBe(28);
+    expect(daysInMonth({ year: 2028, month: 2 })).toBe(29);
+    expect(daysInMonth({ year: 2026, month: 4 })).toBe(30);
+    expect(daysInMonth({ year: 2026, month: 12 })).toBe(31);
+  });
+
+  it('formats a month title', () => {
+    expect(formatMonth({ year: 2026, month: 3 }, 'en-US')).toBe('March 2026');
   });
 });

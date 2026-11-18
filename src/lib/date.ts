@@ -67,15 +67,61 @@ export function todayLocal(now: Date = new Date()): LocalDate {
   return fromParts(now.getFullYear(), now.getMonth() + 1, now.getDate());
 }
 
-/** Display text such as "Dec 3" (or "Dec 3, 2026"). Defaults to the device locale. */
+export type FormatOptions = {
+  withYear?: boolean;
+  /** 'short' → "Dec 3" (default), 'long' → "December 3". */
+  month?: 'short' | 'long';
+  withWeekday?: boolean;
+  locale?: string;
+};
+
+/** Display text such as "Dec 3", "December 3, 2026" or "Thursday, December 3". */
 export function format(
   date: LocalDate,
-  { withYear = false, locale }: { withYear?: boolean; locale?: string } = {},
+  { withYear = false, month = 'short', withWeekday = false, locale }: FormatOptions = {},
 ): string {
   return new Intl.DateTimeFormat(locale, {
-    month: 'short',
+    weekday: withWeekday ? 'long' : undefined,
+    month,
     day: 'numeric',
     year: withYear ? 'numeric' : undefined,
     timeZone: 'UTC',
   }).format(new Date(toEpochDay(date) * MS_PER_DAY));
+}
+
+/** Day of the week, 0 = Sunday … 6 = Saturday. */
+export function weekday(date: LocalDate): number {
+  return new Date(toEpochDay(date) * MS_PER_DAY).getUTCDay();
+}
+
+// ── Months ──────────────────────────────────────────────────────────────────────────
+
+/** A calendar month; `month` is 1–12. */
+export type Month = { year: number; month: number };
+
+export function monthOf(date: LocalDate): Month {
+  const [year, month] = parse(date).split('-').map(Number);
+  return { year, month };
+}
+
+export function addMonths({ year, month }: Month, months: number): Month {
+  const index = year * 12 + (month - 1) + months;
+  return { year: Math.floor(index / 12), month: (index % 12) + 1 };
+}
+
+export function firstDayOf({ year, month }: Month): LocalDate {
+  return fromParts(year, month, 1);
+}
+
+export function daysInMonth({ year, month }: Month): number {
+  return new Date(Date.UTC(year, month, 0)).getUTCDate();
+}
+
+/** "March 2026" in the device locale. */
+export function formatMonth({ year, month }: Month, locale?: string): string {
+  return new Intl.DateTimeFormat(locale, {
+    month: 'long',
+    year: 'numeric',
+    timeZone: 'UTC',
+  }).format(new Date(Date.UTC(year, month - 1, 1)));
 }
