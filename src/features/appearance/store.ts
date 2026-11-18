@@ -58,9 +58,9 @@ export function applyAppearance(next: AppearanceChoice): void {
   emit();
 }
 
-/** Asks the fader to cross-fade to `next`. */
+/** Asks the fader to cross-fade to `next`. Ignored while a switch is already playing. */
 export function requestAppearance(next: AppearanceChoice, fromBg: string): void {
-  if (next === choice) return;
+  if (fade !== null || next === choice) return;
   fade = { id: nextId++, to: next, fromBg };
   emit();
 }

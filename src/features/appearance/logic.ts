@@ -29,5 +29,9 @@ export function effectiveScheme(
   return phoneScheme === 'dark' ? 'dark' : 'light';
 }
 
-/** Cross-fade timing (each step ≤ 250 ms, CLAUDE.md §6.7). */
-export const THEME_FADE = { cover: 150, morph: 200, reveal: 200 } as const;
+/**
+ * Theme switch timing (each step ≤ 250 ms, CLAUDE.md §6.7):
+ * cover = old background fades over the app, dissolve = new background fades over the old one
+ * (after the new theme has drawn underneath), reveal = new background fades away.
+ */
+export const THEME_FADE = { cover: 200, dissolve: 220, reveal: 250 } as const;
