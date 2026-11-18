@@ -2,6 +2,7 @@
   "expo": {
     "name": "Cycle Tracker",
     "slug": "cycle-tracker",
+    "owner": "sersi07",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -37,7 +38,12 @@
           }
         }
       ],
-      ["expo-sqlite", { "useSQLCipher": true }],
+      [
+        "expo-sqlite",
+        {
+          "useSQLCipher": true
+        }
+      ],
       "expo-secure-store"
     ],
     "runtimeVersion": {
@@ -45,11 +51,17 @@
     },
     "updates": {
       "checkAutomatically": "NEVER",
-      "fallbackToCacheTimeout": 0
+      "fallbackToCacheTimeout": 0,
+      "url": "https://u.expo.dev/601e0cbe-9783-422c-acaf-009f9cc945bc"
     },
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "eas": {
+        "projectId": "601e0cbe-9783-422c-acaf-009f9cc945bc"
+      }
     }
   }
 }
