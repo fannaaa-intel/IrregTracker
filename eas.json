@@ -10,6 +10,13 @@
         "buildType": "apk"
       },
       "channel": "preview"
+    },
+    "test": {
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      },
+      "channel": "test"
     }
   }
 }

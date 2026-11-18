@@ -37,15 +37,24 @@ describe('PredictionCard when late', () => {
 
 describe('FertilityCard', () => {
   it('gives ranges and always says it is not contraception', async () => {
-    await render(<FertilityCard estimate={overviewOn(regular.lastStart).fertile} />);
+    const status = overviewOn(regular.lastStart).fertileStatus;
+    if (status.state === 'learning') throw new Error('expected an estimate');
+    await render(<FertilityCard status={status} />);
     expect(screen.getByText(/^Likely between/)).toBeTruthy();
-    expect(screen.getByText(/^Ovulation likely between/)).toBeTruthy();
+    expect(screen.getByText(/^Ovulation happens on one day/)).toBeTruthy();
     expect(screen.getByText(/isn't a form of contraception/)).toBeTruthy();
+    expect(screen.getByText(/hormonal birth control/)).toBeTruthy();
   });
 
   it('explains the pause while late', async () => {
-    await render(<FertilityCard estimate={null} />);
+    await render(<FertilityCard status={{ state: 'late' }} />);
     expect(screen.getByText(/come back once your next period is logged/)).toBeTruthy();
+  });
+
+  it('explains why irregular cycles get no fertile days', async () => {
+    await render(<FertilityCard status={{ state: 'irregular', variation: 23 }} />);
+    expect(screen.getByText(/vary by 23 days/)).toBeTruthy();
+    expect(screen.queryByText(/^Likely between/)).toBeNull();
   });
 });
 

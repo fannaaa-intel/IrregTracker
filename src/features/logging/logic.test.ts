@@ -1,6 +1,7 @@
 import type { Flow } from '../../theme';
 import {
   buildMonthGrid,
+  dayContext,
   dayLabel,
   fertileSegments,
   weekdayInitials,
@@ -149,5 +150,29 @@ describe('dayLabel', () => {
 describe('weekdayInitials', () => {
   it('starts on Sunday', () => {
     expect(weekdayInitials('en-US')).toEqual(['S', 'M', 'T', 'W', 'T', 'F', 'S']);
+  });
+});
+
+describe('dayContext', () => {
+  const window = { start: '2026-03-28', end: '2026-03-31' };
+  const fertile = {
+    fertile: { start: '2026-03-08', end: '2026-03-14' },
+    ovulation: { start: '2026-03-10', end: '2026-03-12' },
+  };
+
+  it('says nothing about ordinary days', () => {
+    expect(dayContext('2026-03-20', { window, fertile })).toEqual([]);
+    expect(dayContext('2026-03-10', { window: null, fertile: null })).toEqual([]);
+  });
+
+  it('explains each estimate, both ends inclusive, and always says it is an estimate', () => {
+    expect(dayContext('2026-03-08', { window, fertile })[0]).toMatch(/^Possible fertile day/);
+    expect(dayContext('2026-03-10', { window, fertile })[0]).toMatch(/^Likely ovulation/);
+    expect(dayContext('2026-03-12', { window, fertile })[0]).toMatch(/^Likely ovulation/);
+    expect(dayContext('2026-03-14', { window, fertile })[0]).toMatch(/^Possible fertile day/);
+    expect(dayContext('2026-03-31', { window, fertile })[0]).toMatch(/^Your next period/);
+    for (const date of ['2026-03-08', '2026-03-10', '2026-03-28']) {
+      expect(dayContext(date, { window, fertile }).join(' ')).toContain('An estimate');
+    }
   });
 });

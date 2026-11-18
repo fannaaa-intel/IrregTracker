@@ -3,7 +3,7 @@ import { passphraseProblem, summarizeBackup, validateBackupData, type BackupData
 
 const STAMP = '2026-11-18T00:00:00.000Z';
 const sample: BackupData = {
-  schemaVersion: 2,
+  schemaVersion: 4,
   periodDays: regular.days.map((d) => ({ ...d, createdAt: STAMP, updatedAt: STAMP })),
   cycleTags: [{ cycleStart: regular.starts[1], reason: 'travel', note: null, exclude: true }],
   settings: [
@@ -12,6 +12,8 @@ const sample: BackupData = {
   ],
   symptoms: [{ date: regular.starts[1], type: 'cramps' }],
   intimacy: [{ date: regular.starts[2], protection: 'protected' }],
+  notes: [{ date: regular.starts[3], body: 'A made-up note.' }],
+  ovulationTests: [{ date: regular.starts[3], result: 'positive' }],
 };
 
 describe('validateBackupData', () => {
@@ -24,9 +26,21 @@ describe('validateBackupData', () => {
   });
 
   it('accepts a schema-1 backup, made before symptoms and sex logs existed', () => {
-    const { symptoms: _s, intimacy: _i, ...v1 } = { ...sample, schemaVersion: 1 };
+    const {
+      symptoms: _s,
+      intimacy: _i,
+      notes: _n,
+      ovulationTests: _t,
+      ...v1
+    } = { ...sample, schemaVersion: 1 };
     const data = validateBackupData(JSON.parse(JSON.stringify(v1)));
-    expect(data).toMatchObject({ schemaVersion: 1, symptoms: [], intimacy: [] });
+    expect(data).toMatchObject({
+      schemaVersion: 1,
+      symptoms: [],
+      intimacy: [],
+      notes: [],
+      ovulationTests: [],
+    });
   });
 
   it.each([
@@ -41,6 +55,10 @@ describe('validateBackupData', () => {
     ['a duplicate symptom', { symptoms: [sample.symptoms[0], sample.symptoms[0]] }],
     ['an unknown protection', { intimacy: [{ date: regular.starts[2], protection: 'maybe' }] }],
     ['a duplicate sex-log day', { intimacy: [sample.intimacy[0], sample.intimacy[0]] }],
+    ['an empty note', { notes: [{ date: regular.starts[3], body: '' }] }],
+    ['a note over the limit', { notes: [{ date: regular.starts[3], body: 'a'.repeat(501) }] }],
+    ['a duplicate note day', { notes: [sample.notes[0], sample.notes[0]] }],
+    ['an unknown test result', { ovulationTests: [{ date: regular.starts[3], result: 'maybe' }] }],
   ])('rejects %s', (_, patch) => {
     expect(validateBackupData({ ...sample, ...patch })).toBeNull();
   });

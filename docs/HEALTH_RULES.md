@@ -23,9 +23,11 @@ Every threshold the app uses, with where it comes from. Code imports these value
 | `PERIOD_MERGE_GAP` | ≤ 2 days | Gap still counted as the same period | Product decision |
 | `FERTILE_FROM_SHORTEST` | 18 days | First possible fertile cycle day = shortest cycle − 18 | Calendar (Knaus–Ogino) method; Mayo Clinic, Cleveland Clinic |
 | `FERTILE_FROM_LONGEST` | 11 days | Last possible fertile cycle day = longest cycle − 11 | Calendar (Knaus–Ogino) method; Mayo Clinic, Cleveland Clinic |
-| `OVULATION_FROM_SHORTEST` | 16 days | Earliest likely ovulation = shortest cycle − 16 | Luteal phase ~14 days (avg 13.7), commonly 12–16 |
-| `OVULATION_FROM_LONGEST` | 12 days | Latest likely ovulation = longest cycle − 12 | Luteal phase ~14 days (avg 13.7), commonly 12–16 |
+| `OVULATION_EARLY` | 16 days | Earliest likely ovulation = typical (median) cycle − 16 | Luteal phase ~14 days (avg 13.7), commonly 12–16 |
+| `OVULATION_LATE` | 12 days | Latest likely ovulation = typical (median) cycle − 12 | Luteal phase ~14 days (avg 13.7), commonly 12–16 |
 | `FERTILE_CYCLES` | 6 cycles | Recent cycles used; fewer than this → "rough estimate" | Family Planning Handbook (calendar method uses the 6 most recent cycles) |
+| `LH_OVULATION_WITHIN` | 2 days | After a positive LH test on day P, ovulation is likely on P to P+2 | Ovulation ~24–36 h after the LH surge starts |
+| `FERTILE_DAYS_BEFORE_OVULATION` | 5 days | Fertile days run from 5 days before ovulation to ovulation | Wilcox 1995 (six-day window ending on ovulation) |
 
 ## Wording templates
 
@@ -43,11 +45,26 @@ v1 left fertile windows out. After her feedback ("para alam ni girl kung kelan a
 ovulation niya"), the owner asked for them. They are shown with these safeguards:
 
 - **A range, never a day.** Possible fertile days use the calendar method with her own shortest
-  and longest recent cycles, so the more her cycles vary, the wider (and more honest) the range.
-  Likely ovulation days sit inside it (cycle length minus a 12–16 day luteal phase).
+  and longest recent cycles. Ovulation happens on **one** day; the app shows the 5 days it most
+  likely falls on (typical cycle length minus a 12–16 day luteal phase) and says so.
+- **Only for fairly regular cycles (fixed Nov 19, 2026).** If her recent cycles vary by
+  `VARIATION_FLAG` (8) days or more, no fertile days are shown at all. The first version widened
+  the range instead, which covered nearly a whole month for an irregular user: true to the
+  formula, but useless and confusing. Guidance agrees: the calendar method "isn't the best choice"
+  for short, long or irregular cycles (Alberta Health) and overestimates the fertile period
+  (GPnotebook); the CDC's Standard Days Method applies only to 26–32 day cycles and asks to consider
+  another method after two or more cycles outside that range in a year. Instead the app explains
+  why and mentions ovulation (LH) tests or a doctor or nurse.
 - **Only when there's a basis.** Needs the same 3 counted cycles as the period window. With fewer
   than 6, it's labelled a rough estimate. Hidden while her period is late (the cycle no longer
-  matches her history) and when she turns it off in Settings.
+  matches her history) and when she turns it off in Settings. Never drawn on logged period days.
+- **Ovulation (LH) tests fix "unclear" (Nov 19, 2026).** She can log a test as positive or
+  negative. The first positive test (day P) after this cycle's period replaces the calendar math
+  for this cycle, even when cycles are irregular or late: likely ovulation P to P+2 (ovulation
+  usually follows a positive test by ~24–36 hours), fertile days P−5 to P+2 (sperm survive up to
+  5 days; Wilcox). Negative tests are kept for her record only.
+- **Medicines.** Hormonal birth control usually stops ovulation, and some medicines change cycles;
+  the card says the estimates don't apply then (she can tag such cycles "medication").
 - **Never contraception.** Every place it appears says so. The calendar method alone has a
   typical-use failure rate of about 1 in 4 per year. Only ~30% of people have their whole fertile
   window inside the textbook days 10–17 (Wilcox 2000), which is why her own cycles are used.
@@ -86,4 +103,8 @@ doctor can help (ACOG). No judgement words, no exclamation marks.
 - Clue, *What happens if I forget to track my period?*: https://support.helloclue.com/hc/en-us/articles/7955531533844-What-happens-if-I-forget-to-track-my-period
 - CDC, *Condom use: an overview*: https://www.cdc.gov/condom-use/index.html
 - ACOG via AAFP, *Recommendations on emergency contraception*: https://www.aafp.org/pubs/afp/issues/2010/1115/p1278.html
+- Proov, *How long after a positive ovulation test am I fertile?*: https://proovtest.com/blogs/blog/how-long-after-a-positive-ovulation-test-am-i-fertile
+- Alberta Health, *Fertility awareness*: https://myhealth.alberta.ca/Health/pages/conditions.aspx?hwid=hw214032
+- GPnotebook, *Rhythm method of natural family planning*: https://gpnotebook.com/pages/gynaecology/rhythm-method-of-natural-family-planning
+- CDC, *Standard Days Method* (US SPR): https://cdc.gov/contraception/hcp/usspr/standard-days-method.html
 - Acibadem, *Normal period cycle length*: https://acibademinternational.com/blog/normal-period-cycle-length-what-counts-as-regular-its-a-range/

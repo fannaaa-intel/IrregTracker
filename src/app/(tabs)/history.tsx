@@ -2,6 +2,7 @@ import { useRouter } from 'expo-router';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { Button } from '@/components/Button';
 import { Card } from '@/components/Card';
 import { ScreenTitle } from '@/components/ScreenTitle';
 import { CycleBarChart } from '@/features/cycles/components/CycleBarChart';
@@ -9,6 +10,9 @@ import { CycleRow } from '@/features/cycles/components/CycleRow';
 import { StatsRow } from '@/features/cycles/components/StatsRow';
 import { useCycleOverview } from '@/features/cycles/hooks';
 import { countedCycles } from '@/features/cycles/logic';
+import { PatternsCard } from '@/features/insights/components/PatternsCard';
+import { symptomPatterns } from '@/features/insights/logic';
+import { useSymptomEntries } from '@/features/symptoms/hooks';
 import { todayLocal } from '@/lib/date';
 import { spacing, typography, useThemeColors } from '@/theme';
 
@@ -16,6 +20,7 @@ export default function HistoryScreen() {
   const colors = useThemeColors();
   const router = useRouter();
   const overview = useCycleOverview(todayLocal());
+  const symptoms = useSymptomEntries();
 
   const openCycle = (start: string) =>
     router.push({ pathname: '/cycle/[id]', params: { id: start } });
@@ -41,6 +46,18 @@ export default function HistoryScreen() {
       ) : (
         <>
           {summary !== null ? <StatsRow summary={summary} /> : null}
+          <Card>
+            <Text accessibilityRole="header" style={[typography.heading, { color: colors.text }]}>
+              Seeing a doctor?
+            </Text>
+            <Text style={[typography.body, { color: colors.textMuted }]}>
+              One screen with your cycles, symptoms and notes to show at an appointment.
+            </Text>
+            <Button label="Summary for a doctor" onPress={() => router.push('/summary')} />
+          </Card>
+          {symptoms !== undefined ? (
+            <PatternsCard patterns={symptomPatterns(history, symptoms)} />
+          ) : null}
           <Card>
             <Text accessibilityRole="header" style={[typography.heading, { color: colors.text }]}>
               Cycle lengths

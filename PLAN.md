@@ -164,9 +164,14 @@ CREATE TABLE intimacy (
 
 -- not built yet
 
-CREATE TABLE note (
+CREATE TABLE note (                  -- migration 3
   date TEXT PRIMARY KEY,
-  body TEXT NOT NULL
+  body TEXT NOT NULL                 -- ≤ 500 characters
+);
+
+CREATE TABLE ovulation_test (        -- migration 4, optional LH test strips
+  date   TEXT PRIMARY KEY,
+  result TEXT NOT NULL CHECK (result IN ('positive','negative'))
 );
 ```
 
@@ -302,6 +307,16 @@ Show one gentle card at a time on Home, dismissible, with a "Why am I seeing thi
 - [x] Calendar: swipe between months, filter chips (also the legend), "Month at a glance" report
 - [x] Backups include symptoms and sex logs (schema 2; schema-1 backups still restore)
 - [ ] Check on her phone after the update: migration runs, reminders arrive, swipe feels right
+
+### Round 3 (Nov 19, at the owner's request)
+- [x] Fertile days fixed: none for irregular cycles (≥ 8 days variation); ovulation = 5-day range from the typical cycle; never on period days; medicines note
+- [x] Optional ovulation (LH) test logging; a positive test drives this cycle's estimate and phase
+- [x] Cycle phases on Home (menstrual / follicular / ovulation / luteal, or "unclear")
+- [x] Calendar key ("What the marks mean") and day-editor context notes
+- [x] Daily notes (migration 3) and ovulation tests (migration 4), both in backups
+- [x] Symptom patterns (History) and an on-screen "Summary for a doctor" (no unencrypted export)
+- [x] `eas.json` test profile (channel `test`), versionCode 5 ready for the next APK
+- [ ] Owner: build a test APK for his phone, then a fresh preview APK for hers
 
 ### M5: Flags + onboarding
 - [x] Flag cards + explanation screen

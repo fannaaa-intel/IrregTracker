@@ -2,7 +2,7 @@ import { Linking, StyleSheet, Switch, Text, View } from 'react-native';
 
 import { Button } from '@/components/Button';
 import { Card } from '@/components/Card';
-import { NOT_CONTRACEPTION } from '@/features/fertility/copy';
+import { MEDS_NOTE, NOT_CONTRACEPTION } from '@/features/fertility/copy';
 import { spacing, typography, useThemeColors } from '@/theme';
 
 import { useCycleReminderSettings } from '../cycle-hooks';
@@ -98,7 +98,8 @@ export function CycleSettingsCards() {
           onChange={(on) => void setFertileOn(on)}
         />
         <Text style={[typography.caption, { color: colors.textMuted }]}>
-          Worked out from your own past cycles, so it&apos;s an estimate. {NOT_CONTRACEPTION}
+          Worked out from your own past cycles, so it&apos;s an estimate, and only shown when your
+          cycles are fairly regular. {NOT_CONTRACEPTION} {MEDS_NOTE}
         </Text>
       </Card>
     </>

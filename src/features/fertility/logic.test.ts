@@ -1,5 +1,6 @@
 import { addDays, diffDays } from '../../lib/date';
 import {
+  buildHistory,
   irregular,
   onlyTwoCycles,
   regular,
@@ -8,8 +9,15 @@ import {
 } from '../__fixtures__/histories';
 import { deriveCycles, type CycleTag } from '../cycles/logic';
 import { predictNextPeriod } from '../prediction/logic';
-import { basisText, fertileText, NOT_CONTRACEPTION, ovulationText } from './copy';
-import { estimateFertileDays, inRange, type DayRange } from './logic';
+import {
+  basisText,
+  fertileText,
+  irregularText,
+  MEDS_NOTE,
+  NOT_CONTRACEPTION,
+  ovulationText,
+} from './copy';
+import { estimateFertileDays, fertileStatus, inRange, type DayRange } from './logic';
 
 function estimate(fixture: HistoryFixture, today = fixture.lastStart, tags: CycleTag[] = []) {
   const history = deriveCycles(fixture.days);
@@ -23,33 +31,23 @@ function cycleDays(fixture: HistoryFixture, range: DayRange | undefined): [numbe
 }
 
 describe('estimateFertileDays', () => {
-  it('uses shortest − 18 to longest − 11 of the last 6 cycles (calendar method)', () => {
-    // regular, last 6 cycles: 29 28 27 28 29 28 → shortest 27, longest 29
+  it('uses shortest − 18 to longest − 11, and typical − 16 to − 12 for ovulation', () => {
+    // regular, last 6 cycles: 29 28 27 28 29 28 → shortest 27, longest 29, typical 28
     const result = estimate(regular);
     expect(cycleDays(regular, result?.fertile)).toEqual([9, 18]);
-    expect(cycleDays(regular, result?.ovulation)).toEqual([11, 17]);
+    expect(cycleDays(regular, result?.ovulation)).toEqual([12, 16]);
     expect(result).toMatchObject({ cyclesUsed: 6, rough: false });
   });
 
-  it('widens with irregular cycles instead of pretending to be precise', () => {
-    // irregular, last 6: 32 40 33 36 29 34 → shortest 29, longest 40
-    const result = estimate(irregular);
-    expect(cycleDays(irregular, result?.fertile)).toEqual([11, 29]);
-    expect(cycleDays(irregular, result?.ovulation)).toEqual([13, 28]);
-  });
-
-  it('keeps ovulation inside the fertile days', () => {
-    for (const fixture of [regular, irregular, steadyCycles(3, 21), steadyCycles(3, 35)]) {
+  it('keeps ovulation to 5 days inside the fertile days, never a single day', () => {
+    for (const fixture of [regular, steadyCycles(3, 21), steadyCycles(3, 35), steadyCycles(6)]) {
       const result = estimate(fixture);
       if (result === null) throw new Error('expected an estimate');
       expect(result.ovulation.start >= result.fertile.start).toBe(true);
       expect(result.ovulation.end <= result.fertile.end).toBe(true);
+      const [from, to] = cycleDays(fixture, result.ovulation);
+      expect(to - from + 1).toBe(5);
     }
-  });
-
-  it('is never a single day, even with identical cycles', () => {
-    const fixture = steadyCycles(6, 28);
-    expect(cycleDays(fixture, estimate(fixture)?.ovulation)).toEqual([12, 16]);
   });
 
   it('needs 3 counted cycles: none with 2', () => {
@@ -82,19 +80,57 @@ describe('estimateFertileDays', () => {
   });
 });
 
+describe('fertileStatus', () => {
+  const status = (fixture: HistoryFixture, today = fixture.lastStart) => {
+    const history = deriveCycles(fixture.days);
+    return fertileStatus(history, [], predictNextPeriod(history, [], today));
+  };
+
+  it('shows nothing for irregular cycles instead of marking most of the month', () => {
+    // irregular, last 6: 32 40 33 36 29 34 → they vary by 11 days
+    expect(status(irregular)).toEqual({ state: 'irregular', variation: 11 });
+    expect(estimate(irregular)).toBeNull();
+  });
+
+  it("draws the line at the app's irregular threshold (7 vs 8 days)", () => {
+    expect(status(buildHistory([28, 28, 28, 28, 28, 35])).state).toBe('shown');
+    expect(status(buildHistory([28, 28, 28, 28, 28, 36]))).toEqual({
+      state: 'irregular',
+      variation: 8,
+    });
+  });
+
+  it('says learning or late when there is no basis', () => {
+    expect(status(onlyTwoCycles).state).toBe('learning');
+    const history = deriveCycles(regular.days);
+    const prediction = predictNextPeriod(history, [], regular.lastStart);
+    if (prediction.state !== 'window') throw new Error('expected a window');
+    expect(status(regular, addDays(prediction.usual.end, 1)).state).toBe('late');
+  });
+});
+
 describe('fertile copy', () => {
   const result = estimate(steadyCycles(5));
   if (result === null) throw new Error('expected an estimate');
 
   it('gives ranges, never a single day', () => {
     expect(fertileText(result, 'en-US')).toMatch(/^Likely between .+ and .+$/);
-    expect(ovulationText(result, 'en-US')).toMatch(/^Ovulation likely between .+ and .+$/);
+    expect(ovulationText(result, 'en-US')).toMatch(
+      /^Ovulation happens on one day, most likely between .+ and .+$/,
+    );
   });
 
   it('says when it is rough, and always that it is not contraception', () => {
     expect(basisText(result)).toBe('A rough estimate from your last 5 cycles.');
     expect(NOT_CONTRACEPTION).toContain("isn't a form of contraception");
     expect(NOT_CONTRACEPTION).not.toContain('!');
+    expect(MEDS_NOTE).toContain('hormonal birth control');
+  });
+
+  it('explains irregular cycles calmly, without diagnosing', () => {
+    const text = irregularText(11);
+    expect(text).toContain('vary by 11 days');
+    expect(text).not.toMatch(/!|PCOS|disorder|problem/i);
   });
 });
 

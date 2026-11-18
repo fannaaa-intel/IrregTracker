@@ -15,8 +15,8 @@ export const CALENDAR_LAYERS: readonly CalendarLayer[] = [
 
 export const layerLabel: Record<CalendarLayer, string> = {
   period: 'Period',
-  predicted: 'Likely period',
-  fertile: 'Fertile days',
+  predicted: 'Likely next period',
+  fertile: 'Fertile days (estimate)',
   sex: 'Sex',
   symptoms: 'Symptoms',
 };

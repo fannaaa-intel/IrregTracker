@@ -71,7 +71,8 @@ export function useCalendar(today: LocalDate) {
   // Same prediction as Home: respects tags and confirmed short cycles.
   const prediction = overview?.prediction;
   const window = prediction?.state === 'window' ? prediction.window : null;
-  const showFertile = useFertileDaysOn() === true;
+  // Only when there is an estimate to show (on in Settings, regular enough, not late).
+  const showFertile = useFertileDaysOn() === true && overview?.fertile != null;
   const intimacyEntries = useIntimacyEntries() ?? [];
   const symptomEntries = useSymptomEntries() ?? [];
   const layers = applyLayers(

@@ -29,9 +29,13 @@ export const PERIOD_MERGE_GAP = 2;
 export const FERTILE_FROM_SHORTEST = 18;
 /** Last possible fertile day = longest cycle − this. Calendar (Knaus–Ogino) method. */
 export const FERTILE_FROM_LONGEST = 11;
-/** Earliest likely ovulation = shortest cycle − this (luteal phase up to ~16 days). */
-export const OVULATION_FROM_SHORTEST = 16;
-/** Latest likely ovulation = longest cycle − this (luteal phase at least ~12 days). */
-export const OVULATION_FROM_LONGEST = 12;
+/** Earliest likely ovulation = typical (median) cycle − this (luteal phase up to ~16 days). */
+export const OVULATION_EARLY = 16;
+/** Latest likely ovulation = typical (median) cycle − this (luteal phase at least ~12 days). */
+export const OVULATION_LATE = 12;
 /** The calendar method uses the most recent cycles; with fewer, the estimate is marked rough. */
 export const FERTILE_CYCLES = 6;
+/** After a positive ovulation (LH) test on day P, ovulation is likely on P … P + this. */
+export const LH_OVULATION_WITHIN = 2;
+/** Sperm can survive this many days, so fertile days start this long before ovulation. Wilcox. */
+export const FERTILE_DAYS_BEFORE_OVULATION = 5;

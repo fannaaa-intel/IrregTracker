@@ -9,6 +9,8 @@ export type DbSnapshot = {
   settings: { key: string; value: string }[];
   symptoms: { date: string; type: string }[];
   intimacy: { date: string; protection: string }[];
+  notes: { date: string; body: string }[];
+  ovulationTests: { date: string; result: string }[];
 };
 
 type DayRow = { date: string; flow: string; created_at: string; updated_at: string };
@@ -33,6 +35,12 @@ export const backupRepo = {
     const intimacy = await db.getAllAsync<{ date: string; protection: string }>(
       'SELECT date, protection FROM intimacy ORDER BY date;',
     );
+    const notes = await db.getAllAsync<{ date: string; body: string }>(
+      'SELECT date, body FROM note ORDER BY date;',
+    );
+    const ovulationTests = await db.getAllAsync<{ date: string; result: string }>(
+      'SELECT date, result FROM ovulation_test ORDER BY date;',
+    );
     return {
       schemaVersion: version?.user_version ?? 0,
       periodDays: days.map((r) => ({
@@ -50,6 +58,8 @@ export const backupRepo = {
       settings: settings.filter((s) => !skipSettings.includes(s.key)),
       symptoms,
       intimacy,
+      notes,
+      ovulationTests,
     };
   },
 
@@ -63,6 +73,8 @@ export const backupRepo = {
       await txn.runAsync('DELETE FROM cycle_tag;');
       await txn.runAsync('DELETE FROM symptom;');
       await txn.runAsync('DELETE FROM intimacy;');
+      await txn.runAsync('DELETE FROM note;');
+      await txn.runAsync('DELETE FROM ovulation_test;');
       const placeholders = keepSettings.map(() => '?').join(', ');
       await txn.runAsync(
         keepSettings.length > 0
@@ -89,6 +101,15 @@ export const backupRepo = {
         await txn.runAsync('INSERT INTO intimacy (date, protection) VALUES (?, ?);', [
           d.date,
           d.protection,
+        ]);
+      }
+      for (const n of data.notes) {
+        await txn.runAsync('INSERT INTO note (date, body) VALUES (?, ?);', [n.date, n.body]);
+      }
+      for (const t of data.ovulationTests) {
+        await txn.runAsync('INSERT INTO ovulation_test (date, result) VALUES (?, ?);', [
+          t.date,
+          t.result,
         ]);
       }
       for (const s of data.settings) {

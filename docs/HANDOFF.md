@@ -25,6 +25,22 @@ Read this after PLAN.md, CLAUDE.md, docs/DESIGN.md and docs/HEALTH_RULES.md.
 - Typecheck, lint (0 warnings), Prettier and all tests pass; Android bundles with `npx expo export`.
 - PLAN.md §8 privacy boxes are unticked until the encryption is checked on a real phone.
 
+## Round 3 (Nov 19, EAS update on runtime 1.2.0)
+
+- **Fertility fix (from her screenshot):** the calendar method marked almost a whole month for
+  irregular cycles. Now `fertileStatus` returns `irregular` at variation ≥ `VARIATION_FLAG` and
+  nothing is drawn; ovulation is typical − 16 … typical − 12; never on period days.
+- Optional ovulation tests (`features/fertility/tests.ts`, `ovulation_test`, migration 4): first
+  positive after this cycle's period → ovulation P…P+2, fertile P−5…P+2, even if irregular/late.
+- Phases (`features/phases/`), calendar key, day context, notes (migration 3), symptom patterns
+  (`features/insights/`), `/summary` doctor screen (on screen only, sex logs left out).
+- Release: `eas.json` profile `test` (channel `test`), `versionCode` 5. Owner's next steps:
+  1. `npx eas-cli@latest build -p android --profile test` → install on the owner's phone.
+  2. Try updates there first: `npx eas-cli@latest update --channel test --environment preview -m "…"`.
+  3. When happy, publish the same to `--channel preview` (her phone).
+  4. A fresh `--profile preview` APK (versionCode 5) for clean installs.
+- Typed routes: new routes need `.expo/types/router.d.ts` regenerated (run `npm start` once).
+
 ## UI/UX round 2 (Nov 18, EAS update on runtime 1.2.0)
 
 - Opening redrawn (timeline.ts: bloom, ring, window, name, tagline, dots, exit; ~1.3 s).

@@ -92,6 +92,7 @@ export default function RootLayout() {
               <Stack.Screen name="log/[date]" options={{ presentation: 'modal' }} />
               <Stack.Screen name="cycle/[id]" />
               <Stack.Screen name="flag/[type]" />
+              <Stack.Screen name="summary" />
               <Stack.Screen name="onboarding" options={{ gestureEnabled: false }} />
               <Stack.Screen name="backup/export" />
               <Stack.Screen name="backup/restore" />

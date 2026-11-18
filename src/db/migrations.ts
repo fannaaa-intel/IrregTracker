@@ -50,6 +50,26 @@ export const migrations: readonly Migration[] = [
       );
     `,
   },
+  {
+    // Nov 18, 2026: a short free-text note per day (PLAN.md v1.5).
+    version: 3,
+    up: `
+      CREATE TABLE note (
+        date  TEXT PRIMARY KEY,
+        body  TEXT NOT NULL
+      );
+    `,
+  },
+  {
+    // Nov 19, 2026: ovulation (LH) test results, so irregular cycles can get a real estimate.
+    version: 4,
+    up: `
+      CREATE TABLE ovulation_test (
+        date    TEXT PRIMARY KEY,
+        result  TEXT NOT NULL CHECK (result IN ('positive','negative'))
+      );
+    `,
+  },
 ];
 
 function assertSequential(steps: readonly Migration[]): void {

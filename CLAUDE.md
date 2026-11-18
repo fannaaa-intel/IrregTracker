@@ -20,7 +20,7 @@ Read `PLAN.md` for scope, `docs/DESIGN.md` for UI, `docs/HEALTH_RULES.md` for me
 ## 2. Health & wording rules
 
 1. **Never show a single predicted date.** Always a window: "likely between Dec 3 and Dec 12".
-2. **Never show "safe days".** Fertile days and ovulation were left out of v1; **owner decision (Nov 18, 2026):** they are now shown, only as ranges from her own cycles (calendar method, `features/fertility/`), hidden while still learning or late, switchable off in Settings, and every place they appear says it **isn't contraception**. Never present any day as "safe". Method and sources: `docs/HEALTH_RULES.md`.
+2. **Never show "safe days".** Fertile days and ovulation were left out of v1; **owner decision (Nov 18, 2026):** they are now shown, only as ranges (calendar method from her own cycles, or a logged positive ovulation test, `features/fertility/`), **never for irregular cycles** (variation ≥ 8 days) unless a positive test is logged, hidden while still learning or late, switchable off in Settings, and every place they appear says it **isn't contraception** and that hormonal birth control or cycle-changing medicine makes them not apply. Cycle phases follow the same rule: say "unclear" rather than guess. Never present any day as "safe". Method and sources: `docs/HEALTH_RULES.md`.
 3. **Never diagnose.** Don't write "You have PCOS / amenorrhea / a problem". Write "This can be worth mentioning to a doctor."
 4. Flags are calm: no red, no ⚠️, no exclamation marks. Use the `notice` color tokens.
 5. Every medical threshold must come from `docs/HEALTH_RULES.md`. Don't hard-code numbers in UI; import them from `features/flags/thresholds.ts`.

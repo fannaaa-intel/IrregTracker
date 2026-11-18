@@ -1,6 +1,7 @@
 import { useDb } from '../../db/DatabaseProvider';
 import { notifyDbChange, useLiveQuery } from '../../db/live-query';
 import { cycleTagRepo } from '../../db/repositories/cycle-tag-repo';
+import { ovulationTestRepo } from '../../db/repositories/ovulation-test-repo';
 import { periodDayRepo, type PeriodDay } from '../../db/repositories/period-day-repo';
 import { settingRepo } from '../../db/repositories/setting-repo';
 import type { LocalDate } from '../../lib/date';
@@ -19,8 +20,11 @@ export function useCycleOverview(today: LocalDate): CycleOverview | undefined {
   const days = usePeriodDays();
   const tags = useLiveQuery((db) => cycleTagRepo.listAll(db));
   const confirmed = useLiveQuery((db) => settingRepo.getConfirmedShortCycles(db));
-  if (days === undefined || tags === undefined || confirmed === undefined) return undefined;
-  return buildOverview({ days, tags, confirmed }, today);
+  const tests = useLiveQuery((db) => ovulationTestRepo.listAll(db));
+  if (days === undefined || tags === undefined || confirmed === undefined || tests === undefined) {
+    return undefined;
+  }
+  return buildOverview({ days, tags, confirmed, tests }, today);
 }
 
 /** Whether to show possible fertile days (Settings → Fertile days). Undefined while loading. */

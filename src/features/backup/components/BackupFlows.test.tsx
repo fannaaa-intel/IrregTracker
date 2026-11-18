@@ -16,6 +16,8 @@ const data: BackupData = {
   settings: [],
   symptoms: [],
   intimacy: [],
+  notes: [],
+  ovulationTests: [],
 };
 
 describe('BackupExport', () => {

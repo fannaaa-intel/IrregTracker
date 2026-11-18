@@ -2,6 +2,8 @@
 // The backup holds every row from the database, so import can fully replace it.
 import { isLocalDate, type LocalDate } from '../../lib/date';
 import { isProtection } from '../intimacy/logic';
+import { isTestResult } from '../fertility/tests';
+import { NOTE_MAX_LENGTH } from '../notes/logic';
 import { isSymptom } from '../symptoms/logic';
 
 export type BackupPeriodDay = {
@@ -19,6 +21,8 @@ export type BackupCycleTag = {
 export type BackupSetting = { key: string; value: string };
 export type BackupSymptom = { date: LocalDate; type: string };
 export type BackupIntimacy = { date: LocalDate; protection: string };
+export type BackupNote = { date: LocalDate; body: string };
+export type BackupOvulationTest = { date: LocalDate; result: string };
 
 export type BackupData = {
   /** PRAGMA user_version of the database the backup came from. */
@@ -29,6 +33,10 @@ export type BackupData = {
   /** Added in schema 2; backups from schema 1 have none. */
   symptoms: BackupSymptom[];
   intimacy: BackupIntimacy[];
+  /** Added in schema 3; older backups have none. */
+  notes: BackupNote[];
+  /** Added in schema 4; older backups have none. */
+  ovulationTests: BackupOvulationTest[];
 };
 
 export type BackupSummary = {
@@ -90,6 +98,27 @@ function validIntimacy(v: unknown): v is BackupIntimacy {
   );
 }
 
+function validNote(v: unknown): v is BackupNote {
+  return (
+    isObject(v) &&
+    isString(v.date) &&
+    isLocalDate(v.date) &&
+    isString(v.body) &&
+    v.body.length > 0 &&
+    v.body.length <= NOTE_MAX_LENGTH
+  );
+}
+
+function validTest(v: unknown): v is BackupOvulationTest {
+  return (
+    isObject(v) &&
+    isString(v.date) &&
+    isLocalDate(v.date) &&
+    isString(v.result) &&
+    isTestResult(v.result)
+  );
+}
+
 /** A list added in a later schema: missing means none; present must be fully valid. */
 function optionalList<T>(value: unknown, valid: (v: unknown) => v is T): T[] | null {
   if (value === undefined) return [];
@@ -102,7 +131,11 @@ export function validateBackupData(value: unknown): BackupData | null {
   const { schemaVersion, periodDays, cycleTags, settings } = value;
   const symptoms = optionalList(value.symptoms, validSymptom);
   const intimacy = optionalList(value.intimacy, validIntimacy);
-  if (symptoms === null || intimacy === null) return null;
+  const notes = optionalList(value.notes, validNote);
+  const ovulationTests = optionalList(value.ovulationTests, validTest);
+  if (symptoms === null || intimacy === null || notes === null || ovulationTests === null) {
+    return null;
+  }
   if (typeof schemaVersion !== 'number' || !Number.isInteger(schemaVersion) || schemaVersion < 1) {
     return null;
   }
@@ -115,6 +148,8 @@ export function validateBackupData(value: unknown): BackupData | null {
   if (!unique(settings.map((s) => s.key))) return null;
   if (!unique(symptoms.map((s) => `${s.date}|${s.type}`))) return null;
   if (!unique(intimacy.map((d) => d.date))) return null;
+  if (!unique(notes.map((n) => n.date))) return null;
+  if (!unique(ovulationTests.map((t) => t.date))) return null;
   return {
     schemaVersion,
     periodDays,
@@ -122,6 +157,8 @@ export function validateBackupData(value: unknown): BackupData | null {
     settings: settings.filter((s) => !DEVICE_ONLY_SETTINGS.includes(s.key)),
     symptoms,
     intimacy,
+    notes,
+    ovulationTests,
   };
 }
 

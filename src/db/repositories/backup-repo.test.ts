@@ -5,6 +5,8 @@ import type { Db } from '../types';
 import { backupRepo, type DbSnapshot } from './backup-repo';
 import { cycleTagRepo } from './cycle-tag-repo';
 import { intimacyRepo } from './intimacy-repo';
+import { noteRepo } from './note-repo';
+import { ovulationTestRepo } from './ovulation-test-repo';
 import { periodDayRepo } from './period-day-repo';
 import { settingRepo } from './setting-repo';
 import { symptomRepo } from './symptom-repo';
@@ -34,13 +36,17 @@ describeSql('backupRepo', () => {
     await settingRepo.setOnboardingDone(db);
     await symptomRepo.setForDate(db, regular.starts[1], ['cramps', 'bloating']);
     await intimacyRepo.set(db, regular.starts[2], 'protected');
+    await noteRepo.set(db, regular.starts[3], 'A made-up note.');
+    await ovulationTestRepo.set(db, regular.starts[3], 'positive');
     await db.runAsync("INSERT INTO setting (key, value) VALUES ('app_lock', 'true');");
   }
 
   it('reads every row and skips device-only settings', async () => {
     await seed();
     const snap = await backupRepo.readAll(db, ['app_lock']);
-    expect(snap.schemaVersion).toBe(2);
+    expect(snap.schemaVersion).toBe(4);
+    expect(snap.ovulationTests).toEqual([{ date: regular.starts[3], result: 'positive' }]);
+    expect(snap.notes).toEqual([{ date: regular.starts[3], body: 'A made-up note.' }]);
     expect(snap.symptoms).toEqual([
       { date: regular.starts[1], type: 'bloating' },
       { date: regular.starts[1], type: 'cramps' },
@@ -63,8 +69,11 @@ describeSql('backupRepo', () => {
       settings: [],
       symptoms: [],
       intimacy: [],
+      notes: [],
+      ovulationTests: [],
     });
     expect(await periodDayRepo.listAll(db)).toEqual([]);
+    expect(await noteRepo.listAll(db)).toEqual([]);
     expect(await symptomRepo.listAll(db)).toEqual([]);
     await backupRepo.replaceAll(db, snap);
     expect(await backupRepo.readAll(db)).toEqual(snap);
@@ -79,6 +88,8 @@ describeSql('backupRepo', () => {
       settings: [],
       symptoms: [],
       intimacy: [],
+      notes: [],
+      ovulationTests: [],
     };
     await backupRepo.replaceAll(db, empty, ['app_lock']);
     const settings = (await backupRepo.readAll(db)).settings.map((s) => s.key);

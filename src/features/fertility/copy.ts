@@ -11,10 +11,21 @@ export function fertileText({ fertile }: FertileEstimate, locale?: string): stri
 }
 
 export function ovulationText({ ovulation }: FertileEstimate, locale?: string): string {
-  return `Ovulation likely between ${between(ovulation, locale)}`;
+  return `Ovulation happens on one day, most likely between ${between(ovulation, locale)}`;
 }
 
-export function basisText({ cyclesUsed, rough }: FertileEstimate): string {
+/** Why no fertile days are shown when cycles vary a lot. Calm, and points to better options. */
+export function irregularText(variation: number): string {
+  return `Your recent cycles vary by ${variation} days, so calendar math would mark most of your cycle as fertile. That wouldn't help, so no fertile days are shown. If you use ovulation (LH) test strips, log a positive one and the app will use it for this cycle. A doctor or nurse can also help.`;
+}
+
+export const MEDS_NOTE =
+  "If you use hormonal birth control or take medicine that changes your cycle, these estimates don't apply.";
+
+export function basisText({ cyclesUsed, rough, source, testDate }: FertileEstimate): string {
+  if (source === 'test' && testDate !== undefined) {
+    return `From your positive ovulation test on ${format(testDate)}.`;
+  }
   const cycles = `your last ${cyclesUsed} cycles`;
   return rough ? `A rough estimate from ${cycles}.` : `An estimate from ${cycles}.`;
 }

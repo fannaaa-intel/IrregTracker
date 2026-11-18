@@ -3,9 +3,12 @@ import { useState } from 'react';
 import { ScrollView, StyleSheet } from 'react-native';
 
 import { useCycleOverview, useFertileDaysOn } from '@/features/cycles/hooks';
+import { useDayOvulationTest } from '@/features/fertility/hooks';
 import { useDayIntimacy } from '@/features/intimacy/hooks';
 import { saferSexNotes } from '@/features/intimacy/logic';
 import { DayEditor } from '@/features/logging/components/DayEditor';
+import { dayContext } from '@/features/logging/logic';
+import { useDayNote } from '@/features/notes/hooks';
 import { useDayFlow, useLogging } from '@/features/logging/hooks';
 import { useDaySymptoms } from '@/features/symptoms/hooks';
 import { diffDays, isLocalDate, todayLocal } from '@/lib/date';
@@ -28,6 +31,8 @@ function DayEditorForDate({ date }: { date: string }) {
   const { setFlow, clearDay } = useLogging();
   const symptoms = useDaySymptoms(date);
   const intimacy = useDayIntimacy(date);
+  const dayNote = useDayNote(date);
+  const test = useDayOvulationTest(date);
   const overview = useCycleOverview(todayLocal());
   const fertileOn = useFertileDaysOn() === true;
 
@@ -41,15 +46,26 @@ function DayEditorForDate({ date }: { date: string }) {
     );
   };
   const protection = intimacy.protection;
-  const fertile = fertileOn ? (overview?.fertile?.fertile ?? null) : null;
+  const estimate = fertileOn ? (overview?.fertile ?? null) : null;
+  const fertile = estimate?.fertile ?? null;
+  const prediction = overview?.prediction;
+  const context = dayContext(date, {
+    window: prediction?.state === 'window' ? prediction.window : null,
+    fertile: estimate,
+  });
 
   return (
     <ScrollView
       style={{ backgroundColor: colors.bg }}
+      keyboardShouldPersistTaps="handled"
       contentContainerStyle={styles.content}
       showsVerticalScrollIndicator={false}
     >
-      {flow === undefined || symptoms.symptoms === undefined || protection === undefined ? null : (
+      {flow === undefined ||
+      symptoms.symptoms === undefined ||
+      protection === undefined ||
+      dayNote.note === undefined ||
+      test.result === undefined ? null : (
         <DayEditor
           date={date}
           flow={flow}
@@ -63,6 +79,12 @@ function DayEditorForDate({ date }: { date: string }) {
           onClearProtection={() => save(intimacy.clear())}
           saferSexNotes={protection === null ? [] : saferSexNotes(date, protection, fertile)}
           savedVersion={savedVersion}
+          note={dayNote.note}
+          onSaveNote={(text) => save(dayNote.save(text))}
+          context={context}
+          ovulationTest={test.result}
+          onSetTest={(result) => save(test.set(result))}
+          onClearTest={() => save(test.clear())}
         />
       )}
     </ScrollView>

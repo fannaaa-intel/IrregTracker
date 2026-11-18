@@ -1,21 +1,22 @@
-import { Droplet, Heart, Sparkles, X, type LucideIcon } from 'lucide-react-native';
-import type { ReactNode } from 'react';
+import { Droplet, FlaskConical, Heart, NotebookPen, Sparkles, X } from 'lucide-react-native';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { Button } from '@/components/Button';
-import { Card } from '@/components/Card';
 import { IconButton } from '@/components/IconButton';
+import { OvulationTestPicker } from '@/features/fertility/components/OvulationTestPicker';
+import type { TestResult } from '@/features/fertility/tests';
 import { IntimacyPicker } from '@/features/intimacy/components/IntimacyPicker';
 import type { Protection } from '@/features/intimacy/logic';
+import { NoteField } from '@/features/notes/components/NoteField';
 import { SymptomPicker } from '@/features/symptoms/components/SymptomPicker';
 import type { Symptom } from '@/features/symptoms/logic';
 import { format, type LocalDate } from '@/lib/date';
-import { radius, spacing, typography, useThemeColors, type Flow } from '@/theme';
+import { spacing, typography, useThemeColors, type Flow } from '@/theme';
 
+import { DayContextNote } from './DayContextNote';
+import { EditorSection } from './EditorSection';
 import { FlowPicker } from './FlowPicker';
 import { SavedNote } from './SavedNote';
-
-const ICON_BADGE = spacing.xxl; // 32
 
 type Props = {
   date: LocalDate;
@@ -32,7 +33,18 @@ type Props = {
   saferSexNotes?: readonly string[];
   /** Goes up after every save, to show a short "Saved". */
   savedVersion?: number;
+  /** The day's note ('' when none); undefined hides the section. */
+  note?: string;
+  onSaveNote?: (text: string) => void;
+  /** What the calendar's estimates say about this day (dayContext). */
+  context?: readonly string[];
+  /** Optional ovulation (LH) test result; undefined hides the section. */
+  ovulationTest?: TestResult | null;
+  onSetTest?: (result: TestResult) => void;
+  onClearTest?: () => void;
 };
+
+const noop = () => undefined;
 
 /** Day editor body (PLAN.md §7): every tap saves at once; Done closes. */
 export function DayEditor({
@@ -42,43 +54,20 @@ export function DayEditor({
   onClear,
   onClose,
   symptoms = [],
-  onToggleSymptom = () => undefined,
+  onToggleSymptom = noop,
   protection = null,
-  onSetProtection = () => undefined,
-  onClearProtection = () => undefined,
+  onSetProtection = noop,
+  onClearProtection = noop,
   saferSexNotes = [],
   savedVersion = 0,
+  note,
+  onSaveNote = noop,
+  context = [],
+  ovulationTest,
+  onSetTest = noop,
+  onClearTest = noop,
 }: Props) {
   const colors = useThemeColors();
-
-  // Each part of the day is a soft card with its own icon, so the screen reads in calm blocks.
-  const section = (
-    title: string,
-    hint: string,
-    body: ReactNode,
-    Icon: LucideIcon,
-    fill = false,
-  ) => (
-    <Card style={styles.section}>
-      <View style={styles.sectionHead}>
-        <View style={[styles.badge, { backgroundColor: colors.surfaceTint }]}>
-          <Icon
-            size={spacing.lg + 2}
-            strokeWidth={1.75}
-            color={colors.primary}
-            fill={fill ? colors.primary : 'none'}
-          />
-        </View>
-        <View style={styles.headText}>
-          <Text accessibilityRole="header" style={[typography.heading, { color: colors.text }]}>
-            {title}
-          </Text>
-          <Text style={[typography.caption, { color: colors.textMuted }]}>{hint}</Text>
-        </View>
-      </View>
-      {body}
-    </Card>
-  );
 
   return (
     <View style={styles.container}>
@@ -94,40 +83,62 @@ export function DayEditor({
           <IconButton icon={X} accessibilityLabel="Close" onPress={onClose} />
         </View>
       </View>
+      <DayContextNote lines={context} />
 
-      {section(
-        'Flow',
-        flow === null ? 'Tap a flow to log this day.' : 'Tap another flow to change it.',
-        <>
-          <FlowPicker value={flow} onChange={onSelect} />
-          {flow !== null ? (
-            <View style={styles.clear}>
-              <Button variant="quiet" label="Not a period day" onPress={onClear} />
-            </View>
-          ) : null}
-        </>,
-        Droplet,
-      )}
+      <EditorSection
+        title="Flow"
+        hint={flow === null ? 'Tap a flow to log this day.' : 'Tap another flow to change it.'}
+        icon={Droplet}
+      >
+        <FlowPicker value={flow} onChange={onSelect} />
+        {flow !== null ? (
+          <View style={styles.clear}>
+            <Button variant="quiet" label="Not a period day" onPress={onClear} />
+          </View>
+        ) : null}
+      </EditorSection>
 
-      {section(
-        'How you feel',
-        'Tap anything you noticed today. Tap again to remove it.',
-        <SymptomPicker value={symptoms} onToggle={onToggleSymptom} />,
-        Sparkles,
-      )}
+      <EditorSection
+        title="How you feel"
+        hint="Tap anything you noticed today. Tap again to remove it."
+        icon={Sparkles}
+      >
+        <SymptomPicker value={symptoms} onToggle={onToggleSymptom} />
+      </EditorSection>
 
-      {section(
-        'Sex',
-        'Only you can see this. It stays encrypted on this phone.',
+      <EditorSection
+        title="Sex"
+        hint="Only you can see this. It stays encrypted on this phone."
+        icon={Heart}
+        filled
+      >
         <IntimacyPicker
           value={protection}
           onChange={onSetProtection}
           onClear={onClearProtection}
           notes={saferSexNotes}
-        />,
-        Heart,
-        true,
-      )}
+        />
+      </EditorSection>
+
+      {note !== undefined ? (
+        <EditorSection
+          title="Note"
+          hint="A few words for future you, or for a doctor. Saved as you type."
+          icon={NotebookPen}
+        >
+          <NoteField initial={note} onSave={onSaveNote} />
+        </EditorSection>
+      ) : null}
+
+      {ovulationTest !== undefined ? (
+        <EditorSection
+          title="Ovulation test (optional)"
+          hint="Only if you use ovulation (LH) test strips. A positive test helps the app estimate this cycle."
+          icon={FlaskConical}
+        >
+          <OvulationTestPicker value={ovulationTest} onChange={onSetTest} onClear={onClearTest} />
+        </EditorSection>
+      ) : null}
 
       <Button label="Done" onPress={onClose} />
     </View>
@@ -152,25 +163,6 @@ const styles = StyleSheet.create({
   title: {
     flex: 1,
     paddingTop: spacing.sm,
-  },
-  section: {
-    gap: spacing.lg,
-  },
-  sectionHead: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-  },
-  badge: {
-    width: ICON_BADGE,
-    height: ICON_BADGE,
-    borderRadius: radius.pill,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  headText: {
-    flex: 1,
-    gap: 2,
   },
   clear: {
     alignItems: 'flex-start',

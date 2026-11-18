@@ -43,7 +43,7 @@ describe('phaseHint', () => {
       fertile: fertileOn ? o.fertile : null,
     });
   };
-  // regular: period lasts 5 days (offsets 0–4), fertile cycle days 9–18, ovulation 11–17,
+  // regular: period lasts 5 days (offsets 0–4), fertile cycle days 9–18, ovulation 12–16,
   // usual window offsets 26–30 after the start.
 
   it('counts period days while bleeding, up to the last logged day', () => {
@@ -54,10 +54,11 @@ describe('phaseHint', () => {
 
   it('shows fertile and ovulation days only when fertile days are on', () => {
     expect(at(8)?.kind).toBe('fertile');
-    expect(at(10)?.kind).toBe('ovulation');
-    expect(at(16)?.kind).toBe('ovulation');
-    expect(at(17)?.kind).toBe('fertile');
-    expect(at(10, false)?.kind).not.toBe('ovulation');
+    expect(at(10)?.kind).toBe('fertile');
+    expect(at(11)?.kind).toBe('ovulation');
+    expect(at(15)?.kind).toBe('ovulation');
+    expect(at(16)?.kind).toBe('fertile');
+    expect(at(11, false)?.kind).not.toBe('ovulation');
   });
 
   it('gives a range of days before the window, never a single date', () => {

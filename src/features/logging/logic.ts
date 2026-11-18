@@ -84,11 +84,15 @@ export function buildMonthGrid(
       isFuture: diffDays(date, today) > 0,
       inWindow: flow === null && isWithin(date, window),
       selected: selected.has(date),
-      fertility: isWithin(date, fertile?.ovulation ?? null)
-        ? 'ovulation'
-        : isWithin(date, fertile?.fertile ?? null)
-          ? 'fertile'
-          : null,
+      // Never on logged period days: an estimate shouldn't sit on top of what she logged.
+      fertility:
+        flow !== null
+          ? null
+          : isWithin(date, fertile?.ovulation ?? null)
+            ? 'ovulation'
+            : isWithin(date, fertile?.fertile ?? null)
+              ? 'fertile'
+              : null,
       hasIntimacy: intimacy.has(date),
       hasSymptoms: symptoms.has(date),
     });
@@ -150,4 +154,28 @@ export function weekdayInitials(locale?: string): string[] {
       new Date(`${addDays(sunday, i)}T00:00:00Z`),
     ),
   );
+}
+
+/**
+ * What an estimate says about one day, in plain words for the top of the day editor, so a band
+ * or flower on the calendar is never a guess. Empty for ordinary days.
+ */
+export function dayContext(
+  date: LocalDate,
+  { window, fertile }: { window: DateWindow | null; fertile: FertileDays | null },
+): string[] {
+  const lines: string[] = [];
+  if (isWithin(date, window)) {
+    lines.push('Your next period will likely start on one of these days. An estimate.');
+  }
+  if (isWithin(date, fertile?.ovulation ?? null)) {
+    lines.push(
+      'Likely ovulation: it happens on just one day, most likely one of these. An estimate.',
+    );
+  } else if (isWithin(date, fertile?.fertile ?? null)) {
+    lines.push(
+      'Possible fertile day: a higher chance of pregnancy. An estimate, not contraception.',
+    );
+  }
+  return lines;
 }

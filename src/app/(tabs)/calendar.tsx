@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button } from '@/components/Button';
 import { ScreenTitle } from '@/components/ScreenTitle';
 import { BackfillBar } from '@/features/logging/components/BackfillBar';
+import { CalendarKey } from '@/features/logging/components/CalendarKey';
 import { CalendarMonth } from '@/features/logging/components/CalendarMonth';
 import { LayerChips } from '@/features/logging/components/LayerChips';
 import { MonthSwiper } from '@/features/logging/components/MonthSwiper';
@@ -74,10 +75,10 @@ export default function CalendarScreen() {
         </MonthSwiper>
         {backfill ? null : (
           <Text style={[typography.caption, styles.hint, { color: colors.textMuted }]}>
-            Swipe to change month. Today has a ring. Tap any past day to log your period, how you
-            feel, or sex.
+            Swipe to change month. Tap any past day to log your period, how you feel, sex or a note.
           </Text>
         )}
+        {backfill ? null : <CalendarKey showFertile={calendar.showFertile} />}
         {!backfill && calendar.report !== null ? (
           <MonthReportCard report={calendar.report} />
         ) : null}

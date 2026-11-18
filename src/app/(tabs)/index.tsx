@@ -20,6 +20,8 @@ import { TodayCard } from '@/features/home/components/TodayCard';
 import { useTodayLog } from '@/features/home/hooks';
 import { greetingFor, phaseHint } from '@/features/home/logic';
 import { useOnboardingState } from '@/features/onboarding/hooks';
+import { PhaseCard } from '@/features/phases/components/PhaseCard';
+import { cyclePhase } from '@/features/phases/logic';
 import { PredictionCard } from '@/features/prediction/components/PredictionCard';
 import { phraseForDay } from '@/features/reminders/logic';
 import { format, localHour, todayLocal } from '@/lib/date';
@@ -37,10 +39,9 @@ export default function HomeScreen() {
 
   const logToday = () => router.push({ pathname: '/log/[date]', params: { date: today } });
   const open = overview?.history.open ?? null;
-  const prediction = overview?.prediction;
-  const isLate = prediction?.state === 'window' && prediction.daysLate > 0;
-  // Shown with an estimate, or (late) to explain why estimates paused. Hidden while learning.
-  const showFertile = fertileOn && (overview?.fertile != null || isLate);
+  // Shown with an estimate, or with a calm reason (late, irregular). Hidden while learning.
+  const fertileStatus = overview?.fertileStatus;
+  const phase = overview === undefined ? null : cyclePhase(today, open, overview.fertileStatus);
   const hint =
     overview === undefined
       ? null
@@ -103,14 +104,19 @@ export default function HomeScreen() {
                 onLogMissedStart={() => router.navigate('/calendar')}
               />
             </FadeIn>
+            {phase !== null ? (
+              <FadeIn index={3}>
+                <PhaseCard info={phase} />
+              </FadeIn>
+            ) : null}
             {todayLog !== undefined ? (
               <FadeIn index={3}>
                 <TodayCard log={todayLog} onLog={logToday} />
               </FadeIn>
             ) : null}
-            {showFertile ? (
+            {fertileOn && fertileStatus !== undefined && fertileStatus.state !== 'learning' ? (
               <FadeIn index={4}>
-                <FertilityCard estimate={overview.fertile} />
+                <FertilityCard status={fertileStatus} />
               </FadeIn>
             ) : null}
             {flag !== null ? (

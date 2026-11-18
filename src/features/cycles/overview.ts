@@ -2,7 +2,8 @@
 // stored, CLAUDE.md §4.3). Pure: rows in, plain data out; `today` is passed in.
 import type { StoredCycleTag } from '../../db/repositories/cycle-tag-repo';
 import type { LocalDate } from '../../lib/date';
-import { estimateFertileDays, type FertileEstimate } from '../fertility/logic';
+import { fertileStatus, type FertileEstimate, type FertileStatus } from '../fertility/logic';
+import type { TestResult } from '../fertility/tests';
 import { predictNextPeriod, type Prediction } from '../prediction/logic';
 import {
   countedCycles,
@@ -22,26 +23,32 @@ export type CycleOverview = {
   summary: CycleSummary | null;
   /** Possible fertile and ovulation days for this cycle; null without an honest basis. */
   fertile: FertileEstimate | null;
+  /** Why there is (or isn't) a fertile estimate, for the words on Home. */
+  fertileStatus: FertileStatus;
 };
 
 export type OverviewRows = {
   days: readonly PeriodDayInput[];
   tags: StoredCycleTag[];
   confirmed: readonly LocalDate[];
+  /** Ovulation (LH) test results; optional, most people never log any. */
+  tests?: readonly { date: LocalDate; result: TestResult }[];
 };
 
 export function buildOverview(
-  { days, tags, confirmed }: OverviewRows,
+  { days, tags, confirmed, tests = [] }: OverviewRows,
   today: LocalDate,
 ): CycleOverview {
   const history = deriveCycles(days, { confirmedShortCycles: confirmed });
   const prediction = predictNextPeriod(history, tags, today);
+  const fertility = fertileStatus(history, tags, prediction, tests);
   return {
     history,
     tags,
     prediction,
     day: cycleDay(history.open, today),
     summary: summarizeCycles(countedCycles(history.closed, tags)),
-    fertile: estimateFertileDays(history, tags, prediction),
+    fertile: fertility.state === 'shown' ? fertility.estimate : null,
+    fertileStatus: fertility,
   };
 }
