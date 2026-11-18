@@ -9,9 +9,12 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import { useColorScheme } from 'react-native';
 
+import { DatabaseErrorScreen } from '@/components/DatabaseErrorScreen';
+import { DatabaseProvider } from '@/db/DatabaseProvider';
+import { useOpenDatabase } from '@/db/use-open-database';
 import { useThemeColors } from '@/theme';
 
-// Keep the splash screen up until the bundled Nunito files are loaded.
+// Keep the splash screen up until fonts are loaded and the encrypted DB has opened (or failed).
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
@@ -20,9 +23,11 @@ export default function RootLayout() {
     Nunito_600SemiBold,
     Nunito_700Bold,
   });
+  const dbState = useOpenDatabase();
   const scheme = useColorScheme();
   const colors = useThemeColors();
-  const ready = fontsLoaded || fontError !== null;
+  const fontsReady = fontsLoaded || fontError !== null;
+  const ready = fontsReady && dbState.status !== 'opening';
 
   useEffect(() => {
     if (ready) {
@@ -30,7 +35,7 @@ export default function RootLayout() {
     }
   }, [ready]);
 
-  if (!ready) {
+  if (!fontsReady || dbState.status === 'opening') {
     return null;
   }
 
@@ -50,7 +55,15 @@ export default function RootLayout() {
   return (
     <ThemeProvider value={navTheme}>
       <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
-      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.bg } }} />
+      {dbState.status === 'error' ? (
+        <DatabaseErrorScreen kind={dbState.kind} />
+      ) : (
+        <DatabaseProvider db={dbState.db}>
+          <Stack
+            screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.bg } }}
+          />
+        </DatabaseProvider>
+      )}
     </ThemeProvider>
   );
 }

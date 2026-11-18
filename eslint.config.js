@@ -17,6 +17,24 @@ module.exports = defineConfig([
     },
   },
   {
+    // CLAUDE.md §1.2 / §4.2: only src/db may touch SQLite. Everything else uses useDb() + repositories.
+    files: ['**/*.ts', '**/*.tsx'],
+    ignores: ['src/db/**'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: [
+            {
+              name: 'expo-sqlite',
+              message: 'Open the database only through src/db (CLAUDE.md §1.2).',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
     rules: {
       // CLAUDE.md §1.3: never log health data. Use console.warn/error for IDs/counts only.
       'no-console': ['error', { allow: ['warn', 'error'] }],
