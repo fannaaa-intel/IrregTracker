@@ -10,8 +10,6 @@ import {
   type Month,
 } from '../../lib/date';
 import type { Flow } from '../../theme';
-import { deriveCycles, type CycleTag, type PeriodDayInput } from '../cycles/logic';
-import { predictNextPeriod } from '../prediction/logic';
 
 export type DateWindow = { start: LocalDate; end: LocalDate };
 
@@ -102,16 +100,6 @@ export function dayLabel(cell: DayCell, locale?: string): string {
   else parts.push('nothing logged');
   if (cell.selected) parts.push('selected');
   return parts.join(', ');
-}
-
-/** The predicted window to draw on the calendar, or null while still learning. */
-export function predictedWindow(
-  days: readonly PeriodDayInput[],
-  tags: readonly CycleTag[],
-  today: LocalDate,
-): DateWindow | null {
-  const prediction = predictNextPeriod(deriveCycles(days), tags, today);
-  return prediction.state === 'window' ? prediction.window : null;
 }
 
 /** Weekday initials for the header row, Sunday first, in the device locale. */

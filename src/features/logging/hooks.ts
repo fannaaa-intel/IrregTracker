@@ -2,19 +2,15 @@ import * as Haptics from 'expo-haptics';
 import { useState } from 'react';
 
 import { useDb } from '../../db/DatabaseProvider';
-import { notifyDbChange, useLiveQuery } from '../../db/live-query';
-import { periodDayRepo, type PeriodDay } from '../../db/repositories/period-day-repo';
+import { notifyDbChange } from '../../db/live-query';
+import { periodDayRepo } from '../../db/repositories/period-day-repo';
 import { addMonths, monthOf, type LocalDate, type Month } from '../../lib/date';
 import type { Flow } from '../../theme';
-import { buildMonthGrid, predictedWindow } from './logic';
+import { useCycleOverview, usePeriodDays } from '../cycles/hooks';
+import { buildMonthGrid } from './logic';
 
 /** How far ahead the calendar can page, so she can see the likely window. */
 const MONTHS_AHEAD = 2;
-
-/** Every logged period day, kept up to date after each write. */
-export function usePeriodDays(): PeriodDay[] | undefined {
-  return useLiveQuery((db) => periodDayRepo.listAll(db));
-}
 
 /** The flow logged on `date`: null if none, undefined while loading. */
 export function useDayFlow(date: LocalDate): Flow | null | undefined {
@@ -57,6 +53,7 @@ const monthIndex = ({ year, month }: Month) => year * 12 + month;
 /** Month paging, the predicted band, and backfill (multi-select) state for the calendar. */
 export function useCalendar(today: LocalDate) {
   const days = usePeriodDays() ?? [];
+  const overview = useCycleOverview(today);
   const { setFlowForDays } = useLogging();
   const [month, setMonth] = useState<Month>(() => monthOf(today));
   const [mode, setMode] = useState<'view' | 'backfill'>('view');
@@ -64,8 +61,9 @@ export function useCalendar(today: LocalDate) {
   const [backfillFlow, setBackfillFlow] = useState<Flow>('medium');
 
   const flows = new Map(days.map((day) => [day.date, day.flow]));
-  // Cycle tags (M4) will be passed here once they can be created.
-  const window = predictedWindow(days, [], today);
+  // Same prediction as Home: respects tags and confirmed short cycles.
+  const prediction = overview?.prediction;
+  const window = prediction?.state === 'window' ? prediction.window : null;
   const grid = buildMonthGrid(month, { flows, window, today, selected });
   const canGoNext = monthIndex(month) < monthIndex(monthOf(today)) + MONTHS_AHEAD;
 
