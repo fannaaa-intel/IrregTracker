@@ -11,6 +11,13 @@ const textPairs: [fg: ColorToken, bg: ColorToken][] = [
   ['onPrimary', 'primary'],
   ['primaryDeep', 'surfaceTint'],
   ['notice', 'noticeBg'],
+  // Text on cards (M7 accessibility pass: Settings, backup and lock screens use these).
+  ['text', 'surface'],
+  ['textMuted', 'surface'],
+  ['primary', 'surface'],
+  ['notice', 'surface'],
+  ['calm', 'surface'],
+  ['text', 'surfaceTint'],
 ];
 
 const palettes: [name: string, colors: Colors][] = [

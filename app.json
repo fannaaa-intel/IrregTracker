@@ -3,7 +3,7 @@
     "name": "Cycle Tracker",
     "slug": "cycle-tracker",
     "owner": "sersi07",
-    "version": "1.1.0",
+    "version": "1.2.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "cycletracker",
@@ -15,7 +15,7 @@
     },
     "android": {
       "package": "com.fannaaa.cycle",
-      "versionCode": 2,
+      "versionCode": 3,
       "allowBackup": false,
       "adaptiveIcon": {
         "backgroundColor": "#FCDCE8",

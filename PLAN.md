@@ -281,8 +281,9 @@ Show one gentle card at a time on Home, dismissible, with a "Why am I seeing thi
 
 ### Kind notes (added Nov 18 at the owner's request)
 - [x] Optional daily local notification with a gentle, discreet phrase (Settings → Kind notes)
-- [x] Off by default; times 8 AM / 12 PM / 6 PM / 9 PM; 14 days scheduled ahead, topped up on open
-- [x] App icon without the alert badge; version 1.1.0 (versionCode 2) for the first shared APK
+- [x] On by default as a surprise: a stable random time each evening, 8 PM–12 AM (or 8 AM / 12 PM / 6 PM); permission asked at the end of the welcome cards; 14 days scheduled ahead, topped up on open
+- [x] App icon without the alert badge
+- [x] Her first APK is version 1.2.0 (versionCode 3), with M6 + M7 included
 - [ ] Check on a phone: permission prompt, a note arrives at the chosen time, lock-screen text
 
 ### M5: Flags + onboarding
@@ -290,13 +291,13 @@ Show one gentle card at a time on Home, dismissible, with a "Why am I seeing thi
 - [x] 3-card onboarding with backfill
 
 ### M6: Privacy features
-- [ ] App lock + blur on background
-- [ ] Encrypted export / import
-- [ ] Delete all data
+- [x] App lock + blur on background (off by default; FLAG_SECURE on Android while on)
+- [x] Encrypted export / import (AES-256-GCM, PBKDF2-SHA256 210k; preview before replace)
+- [x] Delete all data (notes, database file, key; fresh restart)
 
 ### M7: Polish & test with her
-- [ ] Accessibility pass (labels, font scaling, contrast)
-- [ ] Dark mode
+- [x] Accessibility pass (labels, font scaling, contrast; card text pairs now tested)
+- [x] Dark mode (every token pair passes AA in both palettes)
 - [ ] She uses it for 2 weeks → collect feedback → fix list
 - [ ] **v1 done**
 

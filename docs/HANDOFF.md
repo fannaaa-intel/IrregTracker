@@ -10,14 +10,18 @@ Read this after PLAN.md, CLAUDE.md, docs/DESIGN.md and docs/HEALTH_RULES.md.
 | M1 Encrypted storage | Done; not yet verified on a real phone |
 | M2 Core logic | Done |
 | M3 Logging UI | Done (calendar, day editor modal, backfill) |
-| M4 Home + History | Done, merged to `main` and pushed (Nov 18) |
-| Release & updates | Code done on branch `release-updates`; owner still has to log in to Expo and build |
-| M5 Flags + onboarding | Done on branch `m5-flags-onboarding` (stacked on `release-updates`), not pushed |
-| App icon | Owner's logo, alert badge removed, on branch `app-icon` |
-| Kind notes | Done on branch `kind-notes` (stacked on `app-icon`), version 1.1.0 / versionCode 2 |
-| Next | M6 Privacy features |
+| M4 Home + History | Done |
+| Release & updates | Done; Expo project linked, cloud builds work |
+| M5 Flags + onboarding | Done |
+| App icon + Kind notes | Done (notes on by default, surprise time 8 PM–12 AM) |
+| M6 Privacy features | Done: app lock, encrypted backup/restore, delete all |
+| M7 Polish | Accessibility + dark mode done; "she uses it for 2 weeks" is next |
+| Her APK | **v1.2.0 / versionCode 3** from `kind-notes` (everything above) |
 
-- `main` on GitHub (`fannaaa-intel/IrregTracker`) = M0–M4. Push only when the owner says so.
+- GitHub `main` = up to Kind notes v1.1.0 (`c6a280e`); the owner pushes (Claude's pushes are
+  blocked by the permission check). Local `kind-notes` has M6/M7 on top.
+- Builds: `efcbae10` = v1.0.0 (default icon, test only), `523409ed` = v1.1.0 (test only).
+  Runtimes differ per version, so EAS updates never cross between them.
 - Typecheck, lint (0 warnings), Prettier and all tests pass; Android bundles with `npx expo export`.
 - PLAN.md §8 privacy boxes are unticked until the encryption is checked on a real phone.
 
@@ -33,6 +37,17 @@ Read this after PLAN.md, CLAUDE.md, docs/DESIGN.md and docs/HEALTH_RULES.md.
 - Bundle ID `com.fannaaa.cycle` (Android + iOS), `versionCode` 1, `eas.json` preview = APK.
 - Expo project linked (Nov 18): owner `sersi07`, project `@sersi07/cycle-tracker`, `projectId` and
   `updates.url` in app.json. Next: owner runs the first `eas build -p android --profile preview`.
+
+## M6 + M7 (Nov 18)
+
+- Backup (`features/backup/`): `crypto.ts` AES-256-GCM + PBKDF2-SHA256 (iterations stored in the
+  file, header authenticated), `format.ts` strict validation + preview, `backupRepo` replaces all
+  rows in one transaction. `app_lock` is device-only and never travels in a backup.
+- App lock (`features/lock/`): off by default; on/off needs biometrics or phone PIN; relocks after
+  30 s away (`LOCK_GRACE_MS`); FLAG_SECURE while on (hides recents, blocks screenshots).
+- Delete all (`features/privacy/delete-all.ts`): cancel notes → `wipeDatabase()` (file + WAL, then
+  key; stops before the key if the file delete fails) → `Updates.reloadAsync()`.
+- To verify on a phone: backup → delete all → restore; lock relock after 30 s; notes arrive.
 
 ## App icon and kind notes (Nov 18)
 
