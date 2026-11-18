@@ -7,6 +7,9 @@ import {
   format,
   formatMonth,
   isLocalDate,
+  atLocalTime,
+  formatHour,
+  localClock,
   localHour,
   monthOf,
   parse,
@@ -134,5 +137,28 @@ describe('localHour', () => {
     expect(localHour(new Date(2026, 10, 18, 20, 0))).toBe(20);
     expect(localHour(new Date(2026, 10, 18, 23, 59))).toBe(23);
     expect(localHour(new Date(2026, 10, 19, 0, 0))).toBe(0);
+  });
+});
+
+describe('localClock / atLocalTime / formatHour', () => {
+  it('splits a moment into the local date, hour and minute', () => {
+    expect(localClock(new Date(2026, 10, 18, 23, 59))).toEqual({
+      date: '2026-11-18',
+      hour: 23,
+      minute: 59,
+    });
+  });
+
+  it('builds the local moment for a date and hour, across a month end', () => {
+    const moment = atLocalTime('2026-11-30', 8);
+    expect(todayLocal(moment)).toBe('2026-11-30');
+    expect(moment.getHours()).toBe(8);
+    expect(moment.getMinutes()).toBe(0);
+    expect(todayLocal(atLocalTime(addDays('2026-11-30', 1), 21))).toBe('2026-12-01');
+  });
+
+  it('formats hours for display', () => {
+    expect(formatHour(8, 'en-US')).toBe('8 AM');
+    expect(formatHour(18, 'en-US')).toBe('6 PM');
   });
 });

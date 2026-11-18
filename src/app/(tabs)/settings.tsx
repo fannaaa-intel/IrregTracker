@@ -2,6 +2,7 @@ import { ScrollView, StyleSheet, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Card } from '@/components/Card';
+import { KindNotesSection } from '@/features/reminders/components/KindNotesSection';
 import { UpdateRow } from '@/features/updates/components/UpdateRow';
 import { spacing, typography, useThemeColors } from '@/theme';
 
@@ -14,6 +15,8 @@ export default function SettingsScreen() {
         <Text accessibilityRole="header" style={[typography.title, { color: colors.text }]}>
           Settings
         </Text>
+
+        <KindNotesSection />
 
         <Card>
           <Text accessibilityRole="header" style={[typography.heading, { color: colors.text }]}>

@@ -33,6 +33,16 @@ describeSql('settingRepo', () => {
     expect(await settingRepo.getDismissedFlags(db)).toEqual([]);
   });
 
+  it('stores kind-note settings and rejects malformed values', async () => {
+    expect(await settingRepo.getKindNotes(db)).toBeNull();
+    await settingRepo.setKindNotes(db, { enabled: true, hour: 21 });
+    expect(await settingRepo.getKindNotes(db)).toEqual({ enabled: true, hour: 21 });
+    await db.runAsync(
+      'UPDATE setting SET value = \'{"enabled":true,"hour":24}\' WHERE key = \'kind_notes\';',
+    );
+    expect(await settingRepo.getKindNotes(db)).toBeNull();
+  });
+
   it('tracks whether onboarding was finished', async () => {
     expect(await settingRepo.isOnboardingDone(db)).toBe(false);
     await settingRepo.setOnboardingDone(db);

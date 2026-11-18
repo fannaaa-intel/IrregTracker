@@ -6,6 +6,9 @@ import type { Db } from '../types';
 const CONFIRMED_SHORT_CYCLES = 'confirmed_short_cycles';
 const DISMISSED_FLAGS = 'dismissed_flags';
 const ONBOARDING_DONE = 'onboarding_done';
+const KIND_NOTES = 'kind_notes';
+
+export type StoredKindNotes = { enabled: boolean; hour: number };
 
 async function readJson(db: Db, key: string): Promise<unknown> {
   const row = await db.getFirstAsync<{ value: string }>(
@@ -61,5 +64,19 @@ export const settingRepo = {
 
   async setOnboardingDone(db: Db): Promise<void> {
     await writeJson(db, ONBOARDING_DONE, true);
+  },
+
+  /** Daily kind-note settings, or null when never set or unreadable. */
+  async getKindNotes(db: Db): Promise<StoredKindNotes | null> {
+    const value = await readJson(db, KIND_NOTES);
+    if (typeof value !== 'object' || value === null) return null;
+    const { enabled, hour } = value as Record<string, unknown>;
+    if (typeof enabled !== 'boolean' || !Number.isInteger(hour)) return null;
+    const h = hour as number;
+    return h >= 0 && h <= 23 ? { enabled, hour: h } : null;
+  },
+
+  async setKindNotes(db: Db, settings: StoredKindNotes): Promise<void> {
+    await writeJson(db, KIND_NOTES, settings);
   },
 };

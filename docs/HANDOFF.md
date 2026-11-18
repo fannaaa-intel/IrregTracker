@@ -13,6 +13,8 @@ Read this after PLAN.md, CLAUDE.md, docs/DESIGN.md and docs/HEALTH_RULES.md.
 | M4 Home + History | Done, merged to `main` and pushed (Nov 18) |
 | Release & updates | Code done on branch `release-updates`; owner still has to log in to Expo and build |
 | M5 Flags + onboarding | Done on branch `m5-flags-onboarding` (stacked on `release-updates`), not pushed |
+| App icon | Owner's logo, alert badge removed, on branch `app-icon` |
+| Kind notes | Done on branch `kind-notes` (stacked on `app-icon`), version 1.1.0 / versionCode 2 |
 | Next | M6 Privacy features |
 
 - `main` on GitHub (`fannaaa-intel/IrregTracker`) = M0–M4. Push only when the owner says so.
@@ -31,6 +33,17 @@ Read this after PLAN.md, CLAUDE.md, docs/DESIGN.md and docs/HEALTH_RULES.md.
 - Bundle ID `com.fannaaa.cycle` (Android + iOS), `versionCode` 1, `eas.json` preview = APK.
 - Expo project linked (Nov 18): owner `sersi07`, project `@sersi07/cycle-tracker`, `projectId` and
   `updates.url` in app.json. Next: owner runs the first `eas build -p android --profile preview`.
+
+## App icon and kind notes (Nov 18)
+
+- Icons are generated from `assets/branding/logo-no-badge.png` (the owner's logo with the "!"
+  badge removed; `logo-source.png` is the original). Re-export at 1024 px if the logo changes.
+- The first cloud build (`efcbae10…`, commit 677d65e, v1.0.0) has Expo's default icon and no
+  notifications. It's for the owner's own testing only; her first APK is v1.1.0.
+- Kind notes (`features/reminders/`): local notifications only (`expo-notifications`, no push
+  token, no server). Phrases in `phrases.ts` must never mention periods/cycles (lock screen).
+  Settings in `setting.kind_notes`. 14 days are scheduled ahead and topped up on every app open.
+  **M6 "Delete all data" must call `cancelKindNotes()`** (PLAN.md §8).
 
 ## M5: what's done (Nov 18)
 

@@ -279,6 +279,12 @@ Show one gentle card at a time on Home, dismissible, with a "Why am I seeing thi
 - [ ] First cloud APK → Google Drive
 - [ ] Verify on her phone: app opens offline; a test update arrives between 8 PM and 12 AM
 
+### Kind notes (added Nov 18 at the owner's request)
+- [x] Optional daily local notification with a gentle, discreet phrase (Settings → Kind notes)
+- [x] Off by default; times 8 AM / 12 PM / 6 PM / 9 PM; 14 days scheduled ahead, topped up on open
+- [x] App icon without the alert badge; version 1.1.0 (versionCode 2) for the first shared APK
+- [ ] Check on a phone: permission prompt, a note arrives at the chosen time, lock-screen text
+
 ### M5: Flags + onboarding
 - [x] Flag cards + explanation screen
 - [x] 3-card onboarding with backfill

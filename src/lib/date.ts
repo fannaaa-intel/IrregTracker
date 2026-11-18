@@ -72,6 +72,28 @@ export function localHour(now: Date = new Date()): number {
   return now.getHours();
 }
 
+/** Today's date plus the wall-clock hour and minute, for scheduling local reminders. */
+export function localClock(now: Date = new Date()): {
+  date: LocalDate;
+  hour: number;
+  minute: number;
+} {
+  return { date: todayLocal(now), hour: now.getHours(), minute: now.getMinutes() };
+}
+
+/** The moment `hour:minute` happens on `date` on the phone's clock (for notification triggers). */
+export function atLocalTime(date: LocalDate, hour: number, minute = 0): Date {
+  const [year, month, day] = parse(date).split('-').map(Number);
+  return new Date(year, month - 1, day, hour, minute, 0, 0);
+}
+
+/** "8 AM", "6 PM" (or "18:00" style, depending on the device locale). */
+export function formatHour(hour: number, locale?: string): string {
+  return new Intl.DateTimeFormat(locale, { hour: 'numeric', timeZone: 'UTC' }).format(
+    new Date(Date.UTC(2026, 0, 1, hour)),
+  );
+}
+
 export type FormatOptions = {
   withYear?: boolean;
   /** 'short' → "Dec 3" (default), 'long' → "December 3". */

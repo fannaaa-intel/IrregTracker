@@ -12,6 +12,7 @@ import { useColorScheme } from 'react-native';
 import { DatabaseErrorScreen } from '@/components/DatabaseErrorScreen';
 import { DatabaseProvider } from '@/db/DatabaseProvider';
 import { useOpenDatabase } from '@/db/use-open-database';
+import { KindNotesSync } from '@/features/reminders/components/KindNotesSync';
 import { UpdateBanner } from '@/features/updates/components/UpdateBanner';
 import { useAutoUpdateCheck } from '@/features/updates/hooks';
 import { useThemeColors } from '@/theme';
@@ -72,6 +73,7 @@ export default function RootLayout() {
             <Stack.Screen name="onboarding" options={{ gestureEnabled: false }} />
           </Stack>
           <UpdateBanner />
+          <KindNotesSync />
         </DatabaseProvider>
       )}
     </ThemeProvider>
