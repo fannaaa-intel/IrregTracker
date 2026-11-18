@@ -1,7 +1,7 @@
-import { openDatabaseAsync } from 'expo-sqlite';
+import { deleteDatabaseAsync, openDatabaseAsync } from 'expo-sqlite';
 
 import { DbOpenError } from './errors';
-import { getOrCreateDbKey } from './key-service';
+import { deleteDbKey, getOrCreateDbKey } from './key-service';
 import { runMigrations } from './migrations';
 import type { Db } from './types';
 
@@ -57,4 +57,20 @@ export function getDb(): Promise<Db> {
     });
   }
   return opening;
+}
+
+/**
+ * Delete all data (PLAN.md §8): closes the connection, deletes the database file and its key.
+ * The app must restart afterwards; the next launch creates a fresh key and an empty database.
+ */
+export async function wipeDatabase(): Promise<void> {
+  const current = opening;
+  opening = null;
+  if (current !== null) {
+    const db = await current.catch(() => null);
+    await db?.closeAsync().catch(() => undefined);
+  }
+  // If the file can't be deleted, stop before the key goes: the data must stay openable.
+  await deleteDatabaseAsync(DB_NAME);
+  await deleteDbKey();
 }

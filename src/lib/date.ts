@@ -72,6 +72,11 @@ export function localHour(now: Date = new Date()): number {
   return now.getHours();
 }
 
+/** Milliseconds since the epoch, for elapsed-time checks only (never for health dates). */
+export function nowMs(): number {
+  return Date.now();
+}
+
 /** Today's date plus the wall-clock hour and minute, for scheduling local reminders. */
 export function localClock(now: Date = new Date()): {
   date: LocalDate;

@@ -7,6 +7,7 @@ const CONFIRMED_SHORT_CYCLES = 'confirmed_short_cycles';
 const DISMISSED_FLAGS = 'dismissed_flags';
 const ONBOARDING_DONE = 'onboarding_done';
 const KIND_NOTES = 'kind_notes';
+const APP_LOCK = 'app_lock'; // device-only: never in backups (features/backup/format.ts)
 
 /** `time` is 'surprise' or an hour of day (0–23). */
 export type StoredKindNotes = { enabled: boolean; time: 'surprise' | number };
@@ -80,5 +81,13 @@ export const settingRepo = {
 
   async setKindNotes(db: Db, settings: StoredKindNotes): Promise<void> {
     await writeJson(db, KIND_NOTES, settings);
+  },
+
+  async isAppLockOn(db: Db): Promise<boolean> {
+    return (await readJson(db, APP_LOCK)) === true;
+  },
+
+  async setAppLock(db: Db, on: boolean): Promise<void> {
+    await writeJson(db, APP_LOCK, on);
   },
 };

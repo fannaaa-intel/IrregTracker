@@ -45,6 +45,14 @@ describeSql('settingRepo', () => {
     expect(await settingRepo.getKindNotes(db)).toBeNull();
   });
 
+  it('stores the app lock switch, off by default', async () => {
+    expect(await settingRepo.isAppLockOn(db)).toBe(false);
+    await settingRepo.setAppLock(db, true);
+    expect(await settingRepo.isAppLockOn(db)).toBe(true);
+    await settingRepo.setAppLock(db, false);
+    expect(await settingRepo.isAppLockOn(db)).toBe(false);
+  });
+
   it('tracks whether onboarding was finished', async () => {
     expect(await settingRepo.isOnboardingDone(db)).toBe(false);
     await settingRepo.setOnboardingDone(db);

@@ -52,7 +52,13 @@
           "color": "#C2416E"
         }
       ],
-      "expo-sharing"
+      "expo-sharing",
+      [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "Unlock Cycle Tracker with Face ID."
+        }
+      ]
     ],
     "runtimeVersion": {
       "policy": "appVersion"

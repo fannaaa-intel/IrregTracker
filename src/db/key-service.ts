@@ -17,6 +17,11 @@ function toHex(bytes: Uint8Array): string {
   return Array.from(bytes, (byte) => byte.toString(16).padStart(2, '0')).join('');
 }
 
+/** Deletes the key (Delete all data). A new one is created on the next launch. */
+export async function deleteDbKey(): Promise<void> {
+  await SecureStore.deleteItemAsync(KEY_NAME, keyStoreOptions);
+}
+
 /** Returns the 32-byte database key as 64 lowercase hex chars, creating it on first launch. */
 export async function getOrCreateDbKey(): Promise<string> {
   const existing = await SecureStore.getItemAsync(KEY_NAME, keyStoreOptions);

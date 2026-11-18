@@ -12,6 +12,7 @@ import { useColorScheme } from 'react-native';
 import { DatabaseErrorScreen } from '@/components/DatabaseErrorScreen';
 import { DatabaseProvider } from '@/db/DatabaseProvider';
 import { useOpenDatabase } from '@/db/use-open-database';
+import { AppLockGate } from '@/features/lock/components/AppLockGate';
 import { KindNotesSync } from '@/features/reminders/components/KindNotesSync';
 import { UpdateBanner } from '@/features/updates/components/UpdateBanner';
 import { useAutoUpdateCheck } from '@/features/updates/hooks';
@@ -63,18 +64,20 @@ export default function RootLayout() {
         <DatabaseErrorScreen kind={dbState.kind} />
       ) : (
         <DatabaseProvider db={dbState.db}>
-          <Stack
-            screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.bg } }}
-          >
-            <Stack.Screen name="(tabs)" />
-            <Stack.Screen name="log/[date]" options={{ presentation: 'modal' }} />
-            <Stack.Screen name="cycle/[id]" />
-            <Stack.Screen name="flag/[type]" />
-            <Stack.Screen name="onboarding" options={{ gestureEnabled: false }} />
-            <Stack.Screen name="backup/export" />
-            <Stack.Screen name="backup/restore" />
-          </Stack>
-          <UpdateBanner />
+          <AppLockGate>
+            <Stack
+              screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.bg } }}
+            >
+              <Stack.Screen name="(tabs)" />
+              <Stack.Screen name="log/[date]" options={{ presentation: 'modal' }} />
+              <Stack.Screen name="cycle/[id]" />
+              <Stack.Screen name="flag/[type]" />
+              <Stack.Screen name="onboarding" options={{ gestureEnabled: false }} />
+              <Stack.Screen name="backup/export" />
+              <Stack.Screen name="backup/restore" />
+            </Stack>
+            <UpdateBanner />
+          </AppLockGate>
           <KindNotesSync />
         </DatabaseProvider>
       )}
