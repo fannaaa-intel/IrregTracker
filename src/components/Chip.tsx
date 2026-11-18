@@ -40,7 +40,8 @@ export function Chip({
         {
           backgroundColor: selected ? colors.surfaceTint : colors.surface,
           borderColor: selected ? colors.surfaceTint : colors.border,
-          opacity: pressed ? 0.7 : 1,
+          opacity: pressed ? 0.8 : 1,
+          transform: [{ scale: pressed ? 0.96 : 1 }],
         },
       ]}
     >

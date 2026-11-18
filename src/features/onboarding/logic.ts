@@ -1,8 +1,8 @@
-// The 3-card welcome (PLAN.md §7). Pure: content and the "show it?" rule.
+// The welcome cards (PLAN.md §7, plus a card for her feedback round 1). Pure: content and the "show it?" rule.
 import { MIN_CYCLES_FOR_PREDICTION } from '../flags/thresholds';
 
 export type OnboardingCard = {
-  key: 'welcome' | 'privacy' | 'backfill';
+  key: 'welcome' | 'track' | 'privacy' | 'backfill';
   title: string;
   body: string;
   note?: string;
@@ -13,7 +13,13 @@ export const ONBOARDING_CARDS: readonly OnboardingCard[] = [
     key: 'welcome',
     title: 'A calm place for your cycle',
     body: 'Log a period day with one tap. The app learns from your own cycles and shows a likely window, never a single date. Irregular cycles are welcome here.',
-    note: 'Not a medical device and not contraception. Fertile days are only rough estimates.',
+    note: 'Not a medical device and not contraception.',
+  },
+  {
+    key: 'track',
+    title: 'Notice how you feel',
+    body: 'Log cramps, bloating and other symptoms with a tap, and mark sex with a heart. See possible fertile days, a monthly summary and gentle reminders.',
+    note: 'Fertile days are rough estimates from your own cycles, never contraception.',
   },
   {
     key: 'privacy',

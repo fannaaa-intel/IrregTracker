@@ -15,12 +15,24 @@ describe('needsOnboarding', () => {
 });
 
 describe('onboarding cards', () => {
-  it('has the three cards from PLAN.md §7 in order', () => {
-    expect(ONBOARDING_CARDS.map((card) => card.key)).toEqual(['welcome', 'privacy', 'backfill']);
+  it('has the welcome cards in order, ending on backfill', () => {
+    expect(ONBOARDING_CARDS.map((card) => card.key)).toEqual([
+      'welcome',
+      'track',
+      'privacy',
+      'backfill',
+    ]);
+  });
+
+  it('says fertile days are not contraception wherever they are mentioned', () => {
+    for (const card of ONBOARDING_CARDS) {
+      const text = [card.title, card.body, card.note ?? ''].join(' ');
+      if (/fertile/i.test(text)) expect(text).toMatch(/not contraception|never contraception/);
+    }
   });
 
   it('takes the cycle count from the thresholds', () => {
-    expect(ONBOARDING_CARDS[2].body).toContain('once 3 cycles are logged');
+    expect(ONBOARDING_CARDS[3].body).toContain('once 3 cycles are logged');
   });
 
   it('keeps the wording calm and gender-neutral', () => {

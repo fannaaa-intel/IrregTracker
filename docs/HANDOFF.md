@@ -25,6 +25,17 @@ Read this after PLAN.md, CLAUDE.md, docs/DESIGN.md and docs/HEALTH_RULES.md.
 - Typecheck, lint (0 warnings), Prettier and all tests pass; Android bundles with `npx expo export`.
 - PLAN.md §8 privacy boxes are unticked until the encryption is checked on a real phone.
 
+## UI/UX round 2 (Nov 18, EAS update on runtime 1.2.0)
+
+- Opening redrawn (timeline.ts: bloom, ring, window, name, tagline, dots, exit; ~1.3 s).
+- Welcome: 4 cards (new "Notice how you feel"), living pictures (`illustration-motion.ts`),
+  drifting blobs, text rises in, sliding page pill, cards scroll on small phones. Settings →
+  About → "See the welcome again".
+- Home: greeting by hour, `PhaseChip`, ring sweep + today dot, `TodayCard` (replaces the lone
+  Log today button), `NoteCard`, `DriftBlob`, `FadeIn` stagger, petal dots. Owner: **no pulse**.
+- Ornaments (`Flower`, `Sparkle`) per DESIGN.md §4.8; `ScreenTitle` on Calendar/History/Settings.
+- Day editor: icon cards per section + "Saved" note. Calendar: "Back to today".
+
 ## Her feedback round 1 (Nov 18, shipped as an EAS update on runtime 1.2.0)
 
 - Feedback: late prediction stayed in October; she wanted ovulation, symptoms, a sex log with a

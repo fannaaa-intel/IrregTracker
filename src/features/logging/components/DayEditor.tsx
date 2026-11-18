@@ -1,17 +1,21 @@
-import { Heart, X } from 'lucide-react-native';
+import { Droplet, Heart, Sparkles, X, type LucideIcon } from 'lucide-react-native';
 import type { ReactNode } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { Button } from '@/components/Button';
+import { Card } from '@/components/Card';
 import { IconButton } from '@/components/IconButton';
 import { IntimacyPicker } from '@/features/intimacy/components/IntimacyPicker';
 import type { Protection } from '@/features/intimacy/logic';
 import { SymptomPicker } from '@/features/symptoms/components/SymptomPicker';
 import type { Symptom } from '@/features/symptoms/logic';
 import { format, type LocalDate } from '@/lib/date';
-import { spacing, typography, useThemeColors, type Flow } from '@/theme';
+import { radius, spacing, typography, useThemeColors, type Flow } from '@/theme';
 
 import { FlowPicker } from './FlowPicker';
+import { SavedNote } from './SavedNote';
+
+const ICON_BADGE = spacing.xxl; // 32
 
 type Props = {
   date: LocalDate;
@@ -26,6 +30,8 @@ type Props = {
   onSetProtection?: (protection: Protection) => void;
   onClearProtection?: () => void;
   saferSexNotes?: readonly string[];
+  /** Goes up after every save, to show a short "Saved". */
+  savedVersion?: number;
 };
 
 /** Day editor body (PLAN.md §7): every tap saves at once; Done closes. */
@@ -41,20 +47,37 @@ export function DayEditor({
   onSetProtection = () => undefined,
   onClearProtection = () => undefined,
   saferSexNotes = [],
+  savedVersion = 0,
 }: Props) {
   const colors = useThemeColors();
 
-  const section = (title: string, hint: string, body: ReactNode, icon?: ReactNode) => (
-    <View style={styles.section}>
+  // Each part of the day is a soft card with its own icon, so the screen reads in calm blocks.
+  const section = (
+    title: string,
+    hint: string,
+    body: ReactNode,
+    Icon: LucideIcon,
+    fill = false,
+  ) => (
+    <Card style={styles.section}>
       <View style={styles.sectionHead}>
-        {icon}
-        <Text accessibilityRole="header" style={[typography.heading, { color: colors.text }]}>
-          {title}
-        </Text>
+        <View style={[styles.badge, { backgroundColor: colors.surfaceTint }]}>
+          <Icon
+            size={spacing.lg + 2}
+            strokeWidth={1.75}
+            color={colors.primary}
+            fill={fill ? colors.primary : 'none'}
+          />
+        </View>
+        <View style={styles.headText}>
+          <Text accessibilityRole="header" style={[typography.heading, { color: colors.text }]}>
+            {title}
+          </Text>
+          <Text style={[typography.caption, { color: colors.textMuted }]}>{hint}</Text>
+        </View>
       </View>
-      <Text style={[typography.body, { color: colors.textMuted }]}>{hint}</Text>
       {body}
-    </View>
+    </Card>
   );
 
   return (
@@ -66,7 +89,10 @@ export function DayEditor({
         >
           {format(date, { month: 'long', withWeekday: true })}
         </Text>
-        <IconButton icon={X} accessibilityLabel="Close" onPress={onClose} />
+        <View style={styles.headerEnd}>
+          <SavedNote version={savedVersion} />
+          <IconButton icon={X} accessibilityLabel="Close" onPress={onClose} />
+        </View>
       </View>
 
       {section(
@@ -80,12 +106,14 @@ export function DayEditor({
             </View>
           ) : null}
         </>,
+        Droplet,
       )}
 
       {section(
         'How you feel',
         'Tap anything you noticed today. Tap again to remove it.',
         <SymptomPicker value={symptoms} onToggle={onToggleSymptom} />,
+        Sparkles,
       )}
 
       {section(
@@ -97,7 +125,8 @@ export function DayEditor({
           onClear={onClearProtection}
           notes={saferSexNotes}
         />,
-        <Heart size={18} strokeWidth={1.5} color={colors.primary} fill={colors.primary} />,
+        Heart,
+        true,
       )}
 
       <Button label="Done" onPress={onClose} />
@@ -115,17 +144,33 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     gap: spacing.md,
   },
+  headerEnd: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+  },
   title: {
     flex: 1,
     paddingTop: spacing.sm,
   },
   section: {
-    gap: spacing.md,
+    gap: spacing.lg,
   },
   sectionHead: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.sm,
+    gap: spacing.md,
+  },
+  badge: {
+    width: ICON_BADGE,
+    height: ICON_BADGE,
+    borderRadius: radius.pill,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headText: {
+    flex: 1,
+    gap: 2,
   },
   clear: {
     alignItems: 'flex-start',

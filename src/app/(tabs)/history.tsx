@@ -3,6 +3,7 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Card } from '@/components/Card';
+import { ScreenTitle } from '@/components/ScreenTitle';
 import { CycleBarChart } from '@/features/cycles/components/CycleBarChart';
 import { CycleRow } from '@/features/cycles/components/CycleRow';
 import { StatsRow } from '@/features/cycles/components/StatsRow';
@@ -85,9 +86,7 @@ export default function HistoryScreen() {
   return (
     <SafeAreaView edges={['top']} style={[styles.screen, { backgroundColor: colors.bg }]}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <Text accessibilityRole="header" style={[typography.title, { color: colors.text }]}>
-          History
-        </Text>
+        <ScreenTitle>History</ScreenTitle>
         {body}
       </ScrollView>
     </SafeAreaView>

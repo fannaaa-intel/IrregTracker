@@ -2,18 +2,27 @@ import { Redirect, useRouter } from 'expo-router';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { Blob } from '@/components/Blob';
 import { Button } from '@/components/Button';
 import { Card } from '@/components/Card';
+import { DriftBlob } from '@/components/DriftBlob';
+import { FadeIn } from '@/components/FadeIn';
+import { Flower } from '@/components/Ornaments';
+import { PetalDots } from '@/components/PetalDots';
 import { CycleRing } from '@/features/cycles/components/CycleRing';
 import { useCycleOverview, useFertileDaysOn } from '@/features/cycles/hooks';
 import { ringModel } from '@/features/cycles/summary';
 import { FertilityCard } from '@/features/fertility/components/FertilityCard';
 import { FlagCard } from '@/features/flags/components/FlagCard';
 import { useFlagCard } from '@/features/flags/hooks';
+import { NoteCard } from '@/features/home/components/NoteCard';
+import { PhaseChip } from '@/features/home/components/PhaseChip';
+import { TodayCard } from '@/features/home/components/TodayCard';
+import { useTodayLog } from '@/features/home/hooks';
+import { greetingFor, phaseHint } from '@/features/home/logic';
 import { useOnboardingState } from '@/features/onboarding/hooks';
 import { PredictionCard } from '@/features/prediction/components/PredictionCard';
-import { format, todayLocal } from '@/lib/date';
+import { phraseForDay } from '@/features/reminders/logic';
+import { format, localHour, todayLocal } from '@/lib/date';
 import { spacing, typography, useThemeColors } from '@/theme';
 
 export default function HomeScreen() {
@@ -24,6 +33,7 @@ export default function HomeScreen() {
   const { flag, dismiss } = useFlagCard(overview, today);
   const onboarding = useOnboardingState();
   const fertileOn = useFertileDaysOn() === true;
+  const todayLog = useTodayLog(today);
 
   const logToday = () => router.push({ pathname: '/log/[date]', params: { date: today } });
   const open = overview?.history.open ?? null;
@@ -31,6 +41,15 @@ export default function HomeScreen() {
   const isLate = prediction?.state === 'window' && prediction.daysLate > 0;
   // Shown with an estimate, or (late) to explain why estimates paused. Hidden while learning.
   const showFertile = fertileOn && (overview?.fertile != null || isLate);
+  const hint =
+    overview === undefined
+      ? null
+      : phaseHint({
+          today,
+          prediction: overview.prediction,
+          open,
+          fertile: fertileOn ? overview.fertile : null,
+        });
   const ring =
     overview !== undefined && open !== null
       ? ringModel(open, overview.prediction, today, overview.summary?.typical ?? null)
@@ -41,48 +60,76 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView edges={['top']} style={[styles.screen, { backgroundColor: colors.bg }]}>
-      <Blob size={260} style={styles.blob} />
+      <DriftBlob size={260} style={styles.blob} />
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <View style={styles.header}>
+        <FadeIn style={styles.header}>
           <Text style={[typography.caption, { color: colors.textMuted }]}>
             {format(today, { month: 'long', withWeekday: true })}
           </Text>
-          <Text accessibilityRole="header" style={[typography.title, { color: colors.text }]}>
-            Your cycle
-          </Text>
-        </View>
+          <View style={styles.titleRow}>
+            <Text accessibilityRole="header" style={[typography.title, { color: colors.text }]}>
+              {greetingFor(localHour())}
+            </Text>
+            <Flower size={spacing.xl} color={colors.blush} centerColor={colors.petal} />
+          </View>
+        </FadeIn>
 
         {overview === undefined ? null : open === null ? (
-          <Card>
-            <Text style={[typography.heading, { color: colors.text }]}>Nothing logged yet</Text>
-            <Text style={[typography.body, { color: colors.textMuted }]}>
-              Log today, or add your last few periods so predictions can start sooner.
-            </Text>
-            <Button label="Log today" onPress={logToday} />
-            <Button
-              variant="quiet"
-              label="Add past periods"
-              onPress={() => router.navigate('/calendar')}
-            />
-          </Card>
+          <FadeIn index={1}>
+            <Card>
+              <Text style={[typography.heading, { color: colors.text }]}>Nothing logged yet</Text>
+              <Text style={[typography.body, { color: colors.textMuted }]}>
+                Log today, or add your last few periods so predictions can start sooner.
+              </Text>
+              <Button label="Log today" onPress={logToday} />
+              <Button
+                variant="quiet"
+                label="Add past periods"
+                onPress={() => router.navigate('/calendar')}
+              />
+            </Card>
+          </FadeIn>
         ) : (
           <>
-            {ring !== null ? <CycleRing model={ring} /> : null}
-            <PredictionCard
-              prediction={overview.prediction}
-              onLogMissedStart={() => router.navigate('/calendar')}
-            />
-            <Button label="Log today" onPress={logToday} />
-            {showFertile ? <FertilityCard estimate={overview.fertile} /> : null}
-            {flag !== null ? (
-              <FlagCard
-                flag={flag}
-                onWhy={() => router.push({ pathname: '/flag/[type]', params: { type: flag.type } })}
-                onDismiss={() => void dismiss(flag.id)}
+            {ring !== null ? (
+              <FadeIn index={1} style={styles.ringBlock}>
+                <CycleRing model={ring} />
+                {hint !== null ? <PhaseChip hint={hint} /> : null}
+              </FadeIn>
+            ) : null}
+            <FadeIn index={2}>
+              <PredictionCard
+                prediction={overview.prediction}
+                onLogMissedStart={() => router.navigate('/calendar')}
               />
+            </FadeIn>
+            {todayLog !== undefined ? (
+              <FadeIn index={3}>
+                <TodayCard log={todayLog} onLog={logToday} />
+              </FadeIn>
+            ) : null}
+            {showFertile ? (
+              <FadeIn index={4}>
+                <FertilityCard estimate={overview.fertile} />
+              </FadeIn>
+            ) : null}
+            {flag !== null ? (
+              <FadeIn index={5}>
+                <FlagCard
+                  flag={flag}
+                  onWhy={() =>
+                    router.push({ pathname: '/flag/[type]', params: { type: flag.type } })
+                  }
+                  onDismiss={() => void dismiss(flag.id)}
+                />
+              </FadeIn>
             ) : null}
           </>
         )}
+        <FadeIn index={6}>
+          <NoteCard phrase={phraseForDay(today)} />
+        </FadeIn>
+        <PetalDots />
       </ScrollView>
     </SafeAreaView>
   );
@@ -100,9 +147,17 @@ const styles = StyleSheet.create({
     gap: spacing.xl,
     paddingHorizontal: spacing.xl,
     paddingTop: spacing.xl,
-    paddingBottom: spacing.xxl,
+    paddingBottom: spacing.xxxl,
   },
   header: {
     gap: spacing.xs,
+  },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  ringBlock: {
+    gap: spacing.lg,
   },
 });

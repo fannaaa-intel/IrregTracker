@@ -4,6 +4,7 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/Button';
+import { ScreenTitle } from '@/components/ScreenTitle';
 import { BackfillBar } from '@/features/logging/components/BackfillBar';
 import { CalendarMonth } from '@/features/logging/components/CalendarMonth';
 import { LayerChips } from '@/features/logging/components/LayerChips';
@@ -36,9 +37,7 @@ export default function CalendarScreen() {
     <SafeAreaView edges={['top']} style={[styles.screen, { backgroundColor: colors.bg }]}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
-          <Text accessibilityRole="header" style={[typography.title, { color: colors.text }]}>
-            Calendar
-          </Text>
+          <ScreenTitle>Calendar</ScreenTitle>
           {backfill ? null : (
             <Button variant="quiet" label="Add past periods" onPress={calendar.startBackfill} />
           )}
@@ -53,6 +52,11 @@ export default function CalendarScreen() {
             onToggle={calendar.toggleLayer}
             showFertile={calendar.showFertile}
           />
+        )}
+        {calendar.isCurrentMonth ? null : (
+          <View style={styles.today}>
+            <Button variant="quiet" label="Back to today" onPress={calendar.goToday} />
+          </View>
         )}
         <MonthSwiper
           monthKey={calendar.monthKey}
@@ -110,5 +114,9 @@ const styles = StyleSheet.create({
   },
   hint: {
     textAlign: 'center',
+  },
+  today: {
+    alignItems: 'center',
+    marginVertical: -spacing.md,
   },
 });

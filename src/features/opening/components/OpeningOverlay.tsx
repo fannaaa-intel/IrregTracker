@@ -1,27 +1,30 @@
 import { useEffect, useState } from 'react';
-import { Animated, Easing, Image, StyleSheet, View } from 'react-native';
-import Svg, { Circle } from 'react-native-svg';
+import { Animated, Easing, StyleSheet, View } from 'react-native';
 
-import splashImage from '@/assets/images/splash-icon.png';
-import { darkColors, lightColors, radius, spacing, useReduceMotion, useThemeColors } from '@/theme';
+import { Blob } from '@/components/Blob';
+import {
+  darkColors,
+  lightColors,
+  radius,
+  spacing,
+  typography,
+  useReduceMotion,
+  useThemeColors,
+} from '@/theme';
 
 import { getPhoneSchemeAtLaunch } from '../../appearance/store';
+import { OPENING_NAME, OPENING_TAGLINE, openingTimeline, type Step } from '../timeline';
+import { OpeningRing, RING_SIZE, rise } from './OpeningRing';
 
-import { openingTimeline, SPLASH_IMAGE_SIZE, type Step } from '../timeline';
-
-const AnimatedCircle = Animated.createAnimatedComponent(Circle);
-const RING_SIZE = SPLASH_IMAGE_SIZE + spacing.xxxl;
-const RING_STROKE = 1.5;
-const RING_R = (RING_SIZE - RING_STROKE) / 2;
-const RING_LENGTH = 2 * Math.PI * RING_R;
 const DOT = 6;
+const BLOB = 280;
 
 type Props = { onDone: () => void };
 
 const easeOut = Easing.out(Easing.cubic);
-const timing = (value: Animated.Value, to: number, step: Step, native = true) =>
+const timing = (value: Animated.Value, step: Step, native = true) =>
   Animated.timing(value, {
-    toValue: to,
+    toValue: 1,
     delay: step.delay,
     duration: step.duration,
     easing: easeOut,
@@ -29,18 +32,25 @@ const timing = (value: Animated.Value, to: number, step: Step, native = true) =>
   });
 
 /**
- * Opening animation (DESIGN.md §4, §6): picks up from the native splash frame, draws a petal ring
- * around the logo, shows four petal dots, then fades into the app. Decorative only: hidden from
- * screen readers, and reduced to a quick fade when the phone asks for less motion.
+ * Opening animation (DESIGN.md §4, §6): picks up from the native splash frame, blooms two soft
+ * blobs, draws the cycle ring around the logo, lifts the name and four petal dots into place, then
+ * fades into the app. Decorative only: hidden from screen readers, and a quick fade with Reduce
+ * motion on.
  */
 export function OpeningOverlay({ onDone }: Props) {
   const colors = useThemeColors();
   const reduceMotion = useReduceMotion();
   // Animated values live in state (created once), so render never reads a ref.
-  const [ring] = useState(() => new Animated.Value(0));
-  const [dots] = useState(() => [0, 1, 2, 3].map(() => new Animated.Value(0)));
-  const [exit] = useState(() => new Animated.Value(0));
-  const [bgMix] = useState(() => new Animated.Value(0));
+  const [v] = useState(() => ({
+    bloom: new Animated.Value(0),
+    ring: new Animated.Value(0),
+    window: new Animated.Value(0),
+    name: new Animated.Value(0),
+    tagline: new Animated.Value(0),
+    dots: [0, 1, 2, 3].map(() => new Animated.Value(0)),
+    exit: new Animated.Value(0),
+    bgMix: new Animated.Value(0),
+  }));
   // The native splash follows the phone's theme; ease from it into the app's chosen theme.
   const splashBg = getPhoneSchemeAtLaunch() === 'dark' ? darkColors.bg : lightColors.bg;
 
@@ -48,12 +58,19 @@ export function OpeningOverlay({ onDone }: Props) {
     if (reduceMotion === null) return;
     const t = openingTimeline(reduceMotion);
     const animation = Animated.parallel([
-      timing(bgMix, 1, { delay: 0, duration: 200 }, false),
-      ...(reduceMotion ? [] : [timing(ring, 1, t.ring, false)]),
-      ...t.dots.map((step, i) => timing(dots[i], 1, step)),
-      timing(exit, 1, t.exit),
+      timing(v.bgMix, { delay: 0, duration: 200 }, false),
+      ...(reduceMotion
+        ? []
+        : [
+            timing(v.bloom, t.bloom),
+            timing(v.ring, t.ring, false),
+            timing(v.window, t.window, false),
+            timing(v.name, t.name),
+            timing(v.tagline, t.tagline),
+            ...t.dots.map((step, i) => timing(v.dots[i], step)),
+          ]),
+      timing(v.exit, t.exit),
     ]);
-    // Hold the splash frame while the app's first render settles, so the ring draws smoothly.
     const start = setTimeout(() => {
       animation.start(({ finished }) => {
         if (finished) onDone();
@@ -63,12 +80,14 @@ export function OpeningOverlay({ onDone }: Props) {
       clearTimeout(start);
       animation.stop();
     };
-  }, [reduceMotion, ring, dots, exit, bgMix, onDone]);
+  }, [reduceMotion, v, onDone]);
 
-  const fadeOut = exit.interpolate({ inputRange: [0, 1], outputRange: [1, 0] });
-  const lift = exit.interpolate({ inputRange: [0, 1], outputRange: [1, 1.04] });
-  const dash = ring.interpolate({ inputRange: [0, 1], outputRange: [RING_LENGTH, 0] });
-
+  const fadeOut = v.exit.interpolate({ inputRange: [0, 1], outputRange: [1, 0] });
+  const lift = v.exit.interpolate({ inputRange: [0, 1], outputRange: [1, 1.04] });
+  const bloom = {
+    opacity: v.bloom,
+    transform: [{ scale: v.bloom.interpolate({ inputRange: [0, 1], outputRange: [0.85, 1] }) }],
+  };
   return (
     <Animated.View
       pointerEvents="none"
@@ -80,47 +99,41 @@ export function OpeningOverlay({ onDone }: Props) {
         style={[
           StyleSheet.absoluteFill,
           {
-            backgroundColor: bgMix.interpolate({
+            backgroundColor: v.bgMix.interpolate({
               inputRange: [0, 1],
               outputRange: [splashBg, colors.bg],
             }),
           },
         ]}
       />
-      <Animated.View style={[styles.center, { transform: [{ scale: lift }] }]}>
-        <Svg width={RING_SIZE} height={RING_SIZE} style={styles.ring}>
-          <AnimatedCircle
-            cx={RING_SIZE / 2}
-            cy={RING_SIZE / 2}
-            r={RING_R}
-            stroke={colors.petal}
-            strokeWidth={RING_STROKE}
-            strokeLinecap="round"
-            fill="none"
-            strokeDasharray={`${RING_LENGTH} ${RING_LENGTH}`}
-            strokeDashoffset={dash}
-            rotation={-90}
-            origin={`${RING_SIZE / 2}, ${RING_SIZE / 2}`}
-          />
-        </Svg>
-        <Image source={splashImage} style={styles.logo} />
+      <Animated.View style={[styles.blobTop, bloom]}>
+        <Blob size={BLOB} style={styles.blobInner} />
       </Animated.View>
-      <View style={styles.dots}>
-        {dots.map((value, i) => (
-          <Animated.View
-            key={i}
-            style={[
-              styles.dot,
-              {
-                backgroundColor: colors.petal,
-                opacity: value,
-                transform: [
-                  { translateY: value.interpolate({ inputRange: [0, 1], outputRange: [4, 0] }) },
-                ],
-              },
-            ]}
-          />
-        ))}
+      <Animated.View style={[styles.blobBottom, bloom]}>
+        <Blob size={BLOB * 0.8} style={styles.blobInner} />
+      </Animated.View>
+
+      <OpeningRing ring={v.ring} window={v.window} lift={lift} />
+
+      <View style={styles.below}>
+        <Animated.Text
+          style={[typography.title, styles.text, { color: colors.text }, rise(v.name)]}
+        >
+          {OPENING_NAME}
+        </Animated.Text>
+        <Animated.Text
+          style={[typography.body, styles.text, { color: colors.textMuted }, rise(v.tagline)]}
+        >
+          {OPENING_TAGLINE}
+        </Animated.Text>
+        <View style={styles.dots}>
+          {v.dots.map((value, i) => (
+            <Animated.View
+              key={i}
+              style={[styles.dot, { backgroundColor: colors.petal }, rise(value, spacing.xs)]}
+            />
+          ))}
+        </View>
       </View>
     </Animated.View>
   );
@@ -131,19 +144,40 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  ring: {
+  blobTop: {
     position: 'absolute',
+    top: -BLOB * 0.35,
+    right: -BLOB * 0.35,
+    width: BLOB,
+    height: BLOB,
   },
-  logo: {
-    width: SPLASH_IMAGE_SIZE,
-    height: SPLASH_IMAGE_SIZE,
+  blobBottom: {
+    position: 'absolute',
+    bottom: -BLOB * 0.3,
+    left: -BLOB * 0.3,
+    width: BLOB * 0.8,
+    height: BLOB * 0.8,
   },
-  dots: {
+  blobInner: {
+    top: 0,
+    left: 0,
+  },
+  below: {
     position: 'absolute',
     top: '50%',
+    left: spacing.xl,
+    right: spacing.xl,
     marginTop: RING_SIZE / 2 + spacing.xl,
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  text: {
+    textAlign: 'center',
+  },
+  dots: {
     flexDirection: 'row',
     gap: spacing.sm,
+    marginTop: spacing.md,
   },
   dot: {
     width: DOT,

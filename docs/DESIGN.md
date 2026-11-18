@@ -93,7 +93,11 @@ Use these sparingly. One or two per screen is enough.
 6. **Line icons**: `lucide-react-native`, stroke width 1.5, size 22, color `textMuted` (or `primary` when active).
 7. **Empty states**: one small blob + petal dots + one friendly sentence ("Nothing logged yet. Tap a day to start.").
 
-Avoid: flowers, hearts, cartoon characters, glitter, gradients across whole screens, and stock "feminine" clip-art. The UW study found users disliked pink, flowery designs; we keep pink as an *accent*, not wallpaper.
+8. **Soft feminine accents** (owner request, Nov 18, 2026): a simple five-petal `Flower` and a four-point `Sparkle` (`src/components/Ornaments.tsx`), drawn in `blush`/`petal`. A small flower sits beside each screen title, three tiny sparkles around the Home ring and the opening ring, a flower on "Today's note". Hearts mark sex days only. One or two accents per screen, always decorative (hidden from screen readers).
+9. **Today's note** (Home): a soft blush-to-white wash card with a petal bar feel and the day's kind-note phrase.
+10. **Phase chip** (Home): one pill under the ring that changes with the cycle ("Period day 2", "Possible fertile day", "Period likely in 4–9 days"). Fertile kinds use `fertile` + `calm`.
+
+Avoid: cartoon characters, glitter, gradients across whole screens, busy flower patterns, and stock "feminine" clip-art. The UW study found users disliked pink, flowery *wallpaper*; we keep pink and the small ornaments as *accents*.
 
 ---
 
@@ -118,6 +122,11 @@ Avoid: flowers, hearts, cartoon characters, glitter, gradients across whole scre
 - Durations: 150 ms (press), 250 ms (sheet/modal). Ease-out.
 - Haptics: light impact on logging a day; nothing else.
 - Respect `AccessibilityInfo.isReduceMotionEnabled`. When it's on, there's no blob drift and no ring animation.
+- **Opening** (~1.3 s): blobs bloom, the cycle ring draws around the logo with its window arc and two sparkles, the name and promise rise, four petal dots, then a soft fade into the app. Each motion ≤ 250 ms.
+- **Screens**: content rises in once with a 60 ms stagger (`FadeIn`). The Home ring's arc sweeps in; a small dot marks today.
+- **Ambient**: only very slow drifts (Home blob ~10 s, welcome blobs ~9 s, welcome pictures orbit/float). **No pulsing** anywhere (owner decision).
+- **Welcome cards**: pictures keep a calm loop while their card is showing, text rises in line by line, a petal pill slides between the page dots.
+- **Feedback**: buttons and chips shrink slightly when pressed (0.98 / 0.96); the day editor shows a small "Saved" after each change.
 
 ---
 

@@ -33,7 +33,11 @@ export function Button({
       style={({ pressed }) => [
         styles.button,
         primary ? { backgroundColor: colors.primary } : null,
-        { opacity: disabled ? 0.5 : pressed ? 0.8 : 1 },
+        // A soft press: slightly dimmer and a touch smaller, no ripple (DESIGN.md §6).
+        {
+          opacity: disabled ? 0.5 : pressed ? 0.85 : 1,
+          transform: [{ scale: pressed ? 0.98 : 1 }],
+        },
       ]}
     >
       <Text style={[typography.label, { color: primary ? colors.onPrimary : colors.primary }]}>

@@ -5,7 +5,8 @@ describe('openingTimeline', () => {
   const full = openingTimeline(false);
 
   it('keeps every animation at 250 ms or less (CLAUDE.md §6.7)', () => {
-    for (const step of [full.ring, ...full.dots, full.exit]) {
+    const steps = [full.bloom, full.ring, full.window, full.name, full.tagline, ...full.dots];
+    for (const step of [...steps, full.exit]) {
       expect(step.duration).toBeGreaterThan(0);
       expect(step.duration).toBeLessThanOrEqual(250);
     }
@@ -19,14 +20,28 @@ describe('openingTimeline', () => {
     expect(full.total).toBe(full.hold + full.exit.delay + full.exit.duration);
   });
 
-  it('stays short: under a second from splash to app', () => {
-    expect(full.total).toBeLessThan(1000);
+  it('draws the ring before its window arc, and the name before the tagline', () => {
+    expect(full.window.delay).toBeGreaterThan(full.ring.delay);
+    expect(full.tagline.delay).toBeGreaterThan(full.name.delay);
+  });
+
+  it('ends every motion before the exit starts', () => {
+    const steps = [full.bloom, full.ring, full.window, full.name, full.tagline, ...full.dots];
+    for (const step of steps) {
+      expect(step.delay + step.duration).toBeLessThanOrEqual(full.exit.delay);
+    }
+  });
+
+  it('stays short: about a breath, under 1.5 s from splash to app', () => {
+    expect(full.total).toBeLessThan(1500);
   });
 
   it('with Reduce motion: no ring or dots, just a quick fade', () => {
     const reduced = openingTimeline(true);
     expect(reduced.dots).toEqual([]);
     expect(reduced.ring.duration).toBe(0);
+    expect(reduced.bloom.duration).toBe(0);
+    expect(reduced.name.duration).toBe(0);
     expect(reduced.total).toBeLessThanOrEqual(150);
   });
 

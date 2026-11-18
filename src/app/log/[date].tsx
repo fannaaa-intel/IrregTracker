@@ -1,4 +1,5 @@
 import { Redirect, useLocalSearchParams, useRouter } from 'expo-router';
+import { useState } from 'react';
 import { ScrollView, StyleSheet } from 'react-native';
 
 import { useCycleOverview, useFertileDaysOn } from '@/features/cycles/hooks';
@@ -30,7 +31,15 @@ function DayEditorForDate({ date }: { date: string }) {
   const overview = useCycleOverview(todayLocal());
   const fertileOn = useFertileDaysOn() === true;
 
+  const [savedVersion, setSavedVersion] = useState(0);
   const close = () => (router.canGoBack() ? router.back() : router.replace('/calendar'));
+  // Every change saves at once; a short "Saved" confirms it.
+  const save = (task: Promise<void>) => {
+    task.then(
+      () => setSavedVersion((v) => v + 1),
+      () => console.warn('A day could not be saved.'),
+    );
+  };
   const protection = intimacy.protection;
   const fertile = fertileOn ? (overview?.fertile?.fertile ?? null) : null;
 
@@ -44,15 +53,16 @@ function DayEditorForDate({ date }: { date: string }) {
         <DayEditor
           date={date}
           flow={flow}
-          onSelect={(next) => void setFlow(date, next)}
-          onClear={() => void clearDay(date)}
+          onSelect={(next) => save(setFlow(date, next))}
+          onClear={() => save(clearDay(date))}
           onClose={close}
           symptoms={symptoms.symptoms}
-          onToggleSymptom={(symptom) => void symptoms.toggle(symptom)}
+          onToggleSymptom={(symptom) => save(symptoms.toggle(symptom))}
           protection={protection}
-          onSetProtection={(next) => void intimacy.set(next)}
-          onClearProtection={() => void intimacy.clear()}
+          onSetProtection={(next) => save(intimacy.set(next))}
+          onClearProtection={() => save(intimacy.clear())}
           saferSexNotes={protection === null ? [] : saferSexNotes(date, protection, fertile)}
+          savedVersion={savedVersion}
         />
       )}
     </ScrollView>

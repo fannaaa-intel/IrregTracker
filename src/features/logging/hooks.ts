@@ -114,6 +114,8 @@ export function useCalendar(today: LocalDate) {
     selectedCount: selected.size,
     backfillFlow,
     setBackfillFlow,
+    isCurrentMonth: monthIndex(month) === monthIndex(monthOf(today)),
+    goToday: () => setMonth(monthOf(today)),
     goPrev: () => setMonth((current) => addMonths(current, -1)),
     goNext: () => setMonth((current) => addMonths(current, 1)),
     startBackfill: () => {
