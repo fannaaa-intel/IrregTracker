@@ -10,6 +10,7 @@ Read `PLAN.md` for scope, `docs/DESIGN.md` for UI, `docs/HEALTH_RULES.md` for me
 ## 1. Privacy rules (never break these)
 
 1. **No network.** Do not add `fetch`, axios, websockets, analytics, crash reporting, ads, remote config, or any SDK that phones home. If a library needs the internet, don't use it.
+   **One exception (owner decision, Nov 18, 2026): app updates via `expo-updates` (EAS Update).** The app asks Expo's update server whether newer app code exists and downloads it. The request carries only app details (version, platform, update channel, a random install ID) and the phone's IP address. It never sends health data, the encryption key, or anything from the database. It checks automatically only 8 PM–12 AM on the phone's clock while the app is open, or when she taps Settings → Check for updates. The app must work fully offline without it. No other network use is allowed (`src/features/updates/`).
 2. **Never run unencrypted.** The DB must be opened through `src/db/client.ts`, which verifies `PRAGMA cipher_version`. Never open SQLite directly anywhere else.
 3. **Never log health data.** No `console.log` of dates, flows, symptoms, or notes, even in dev. Log IDs/counts only.
 4. **The encryption key lives only in SecureStore.** Never put it in state, AsyncStorage, files, or logs.

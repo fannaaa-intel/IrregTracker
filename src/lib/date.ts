@@ -67,6 +67,11 @@ export function todayLocal(now: Date = new Date()): LocalDate {
   return fromParts(now.getFullYear(), now.getMonth() + 1, now.getDate());
 }
 
+/** Hour of day (0–23) on the phone's own clock. Not for health data: used for app update timing. */
+export function localHour(now: Date = new Date()): number {
+  return now.getHours();
+}
+
 export type FormatOptions = {
   withYear?: boolean;
   /** 'short' → "Dec 3" (default), 'long' → "December 3". */

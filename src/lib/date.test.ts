@@ -7,6 +7,7 @@ import {
   format,
   formatMonth,
   isLocalDate,
+  localHour,
   monthOf,
   parse,
   todayLocal,
@@ -125,5 +126,13 @@ describe('months', () => {
 
   it('formats a month title', () => {
     expect(formatMonth({ year: 2026, month: 3 }, 'en-US')).toBe('March 2026');
+  });
+});
+
+describe('localHour', () => {
+  it('reads the hour from local fields, not UTC', () => {
+    expect(localHour(new Date(2026, 10, 18, 20, 0))).toBe(20);
+    expect(localHour(new Date(2026, 10, 18, 23, 59))).toBe(23);
+    expect(localHour(new Date(2026, 10, 19, 0, 0))).toBe(0);
   });
 });

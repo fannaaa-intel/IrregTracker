@@ -72,6 +72,7 @@ Nothing leaves the phone: no account, no server, no analytics.
 | Icons / elements | `react-native-svg` + `lucide-react-native` | Thin-line icons and decorative shapes |
 | Fonts | `@expo-google-fonts/nunito` | Rounded, friendly, readable |
 | Tests | `jest-expo` + `@testing-library/react-native` | Pure logic gets unit tests first |
+| App updates | `expo-updates` (EAS Update) + EAS Build | The one network exception (CLAUDE.md §1.1); APK shared via Google Drive |
 
 Not using: Redux, analytics SDKs, crash reporters, remote config, any network library.
 
@@ -229,7 +230,7 @@ Show one gentle card at a time on Home, dismissible, with a "Why am I seeing thi
 - [ ] SQLCipher build flag on for iOS and Android (`expo.sqlite.useSQLCipher`)
 - [ ] Key generated with `expo-crypto`, stored in `expo-secure-store` (`WHEN_UNLOCKED_THIS_DEVICE_ONLY`)
 - [ ] On every DB open run `PRAGMA cipher_version;`. If it returns empty, **stop with an error screen**: never run unencrypted
-- [ ] No network permission use; no analytics, ads, or crash SDKs in `package.json`
+- [ ] No network use except app updates (`expo-updates`, CLAUDE.md §1.1 exception: app code only, never health data, 8 PM–12 AM or on tap); no analytics, ads, or crash SDKs in `package.json`
 - [ ] Export file encrypted with a passphrase she chooses (AES-GCM, key derived via PBKDF2/scrypt)
 - [ ] Import validates schema version and shows a preview before replacing data
 - [ ] "Delete all data" wipes the DB, the key, and scheduled notifications
@@ -269,6 +270,13 @@ Show one gentle card at a time on Home, dismissible, with a "Why am I seeing thi
 - [x] Prediction window text + confidence chip
 - [x] History stats, bar chart, cycle list
 - [x] Cycle detail + tagging
+
+### Release & updates (added Nov 18 at the owner's request, before the first APK)
+- [x] `expo-updates`: auto check 8 PM–12 AM (phone clock) while open, max every 30 min → "New version ready · Restart"; Settings → Check for updates
+- [x] CLAUDE.md §1.1 exception approved by the owner
+- [x] `eas.json` preview profile (APK, channel `preview`); bundle ID `com.fannaaa.cycle`
+- [ ] Owner: Expo login, `eas init` + `eas update:configure`, first cloud APK → Google Drive
+- [ ] Verify on her phone: app opens offline; a test update arrives between 8 PM and 12 AM
 
 ### M5: Flags + onboarding
 - [ ] Flag cards + explanation screen

@@ -10,10 +10,11 @@
     "backgroundColor": "#FFF8FA",
     "ios": {
       "icon": "./assets/expo.icon",
-      "bundleIdentifier": "com.cycletracker.app"
+      "bundleIdentifier": "com.fannaaa.cycle"
     },
     "android": {
-      "package": "com.cycletracker.app",
+      "package": "com.fannaaa.cycle",
+      "versionCode": 1,
       "allowBackup": false,
       "adaptiveIcon": {
         "backgroundColor": "#FCE8EF",
@@ -39,6 +40,13 @@
       ["expo-sqlite", { "useSQLCipher": true }],
       "expo-secure-store"
     ],
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "checkAutomatically": "NEVER",
+      "fallbackToCacheTimeout": 0
+    },
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true

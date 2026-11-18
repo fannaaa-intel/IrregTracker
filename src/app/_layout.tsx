@@ -12,6 +12,8 @@ import { useColorScheme } from 'react-native';
 import { DatabaseErrorScreen } from '@/components/DatabaseErrorScreen';
 import { DatabaseProvider } from '@/db/DatabaseProvider';
 import { useOpenDatabase } from '@/db/use-open-database';
+import { UpdateBanner } from '@/features/updates/components/UpdateBanner';
+import { useAutoUpdateCheck } from '@/features/updates/hooks';
 import { useThemeColors } from '@/theme';
 
 // Keep the splash screen up until fonts are loaded and the encrypted DB has opened (or failed).
@@ -26,6 +28,7 @@ export default function RootLayout() {
   const dbState = useOpenDatabase();
   const scheme = useColorScheme();
   const colors = useThemeColors();
+  useAutoUpdateCheck();
   const fontsReady = fontsLoaded || fontError !== null;
   const ready = fontsReady && dbState.status !== 'opening';
 
@@ -66,6 +69,7 @@ export default function RootLayout() {
             <Stack.Screen name="log/[date]" options={{ presentation: 'modal' }} />
             <Stack.Screen name="cycle/[id]" />
           </Stack>
+          <UpdateBanner />
         </DatabaseProvider>
       )}
     </ThemeProvider>

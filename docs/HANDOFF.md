@@ -10,14 +10,29 @@ Read this after PLAN.md, CLAUDE.md, docs/DESIGN.md and docs/HEALTH_RULES.md.
 | M1 Encrypted storage | Done; not yet verified on a real phone |
 | M2 Core logic | Done |
 | M3 Logging UI | Done (calendar, day editor modal, backfill) |
-| M4 Home + History | Done on branch `m4-home-history`, **not merged or pushed** |
-| Next | **Release & updates** (below), then M5 |
+| M4 Home + History | Done, merged to `main` and pushed (Nov 18) |
+| Release & updates | Code done on branch `release-updates`; owner still has to log in to Expo and build |
+| Next | M5 |
 
-- `main` on GitHub (`fannaaa-intel/IrregTracker`) = M0–M3. Push only when the owner says so.
-- 163 tests, typecheck, lint (0 warnings) and Prettier all pass; Android + iOS bundle with `npx expo export`.
+- `main` on GitHub (`fannaaa-intel/IrregTracker`) = M0–M4. Push only when the owner says so.
+- Typecheck, lint (0 warnings), Prettier and all tests pass; Android bundles with `npx expo export`.
 - PLAN.md §8 privacy boxes are unticked until the encryption is checked on a real phone.
 
-## Next: Release & updates (agreed with the owner)
+## Release & updates: what's done (Nov 18)
+
+- `src/features/updates/`: pure `logic.ts` (window, 30-min throttle, status text), `app-update.ts`
+  (tiny store + check/download/restart), `hooks.ts` (`useAutoUpdateCheck` in the root layout),
+  `UpdateBanner` (calm "New version ready · Restart", dismissible) and `UpdateRow` in Settings.
+- Window uses the **phone's clock** (`localHour` in lib/date), not fixed Manila time, so it follows
+  her if she travels. Same as Manila while she's in the Philippines.
+- Settings screen now has App (updates) and About (not a medical device / not contraception).
+- CLAUDE.md §1.1 exception approved with the precise wording (mentions IP + random install ID).
+- Bundle ID `com.fannaaa.cycle` (Android + iOS), `versionCode` 1, `eas.json` preview = APK.
+- **Still missing until the owner logs in:** `extra.eas.projectId`, `owner` and `updates.url` in
+  app.json. They come from `eas init` + `eas update:configure`. The first APK must have
+  `updates.url`, or it can never update.
+
+## Original brief: Release & updates (agreed with the owner)
 
 The owner's partner isn't nearby, so the app goes to her as an **APK through Google Drive**, with
 **automatic updates between 8 PM and 12 AM** (Manila), copying the pattern of the owner's budget
