@@ -3,21 +3,26 @@
 import { addDays, diffDays, type LocalDate } from '../../lib/date';
 import { KIND_NOTES } from './phrases';
 
-/** Times she can pick (hour of day on the phone's clock). */
-export const KIND_NOTE_HOURS = [8, 12, 18, 21] as const;
-export const DEFAULT_KIND_NOTE_HOUR = 8;
+/** 'surprise' = a different moment each evening, 8:00 PM – 11:59 PM (same window as updates). */
+export type KindNoteTime = 'surprise' | 8 | 12 | 18;
+export const KIND_NOTE_TIMES: readonly KindNoteTime[] = ['surprise', 8, 12, 18];
+export const SURPRISE_WINDOW = { fromHour: 20, toHour: 24 } as const;
 /** How many days are scheduled ahead; topped up each time the app opens. */
 export const KIND_NOTE_DAYS_AHEAD = 14;
 const ID_PREFIX = 'kind-note-';
 const EPOCH: LocalDate = '2026-01-01';
 
-export type KindNoteSettings = { enabled: boolean; hour: number };
-export const DEFAULT_KIND_NOTES: KindNoteSettings = {
-  enabled: false,
-  hour: DEFAULT_KIND_NOTE_HOUR,
-};
+export type KindNoteSettings = { enabled: boolean; time: KindNoteTime };
+/** On by default: the notes are meant to arrive as a surprise. She can turn them off in Settings. */
+export const DEFAULT_KIND_NOTES: KindNoteSettings = { enabled: true, time: 'surprise' };
 
-export type PlannedNote = { id: string; date: LocalDate; hour: number; body: string };
+export type PlannedNote = {
+  id: string;
+  date: LocalDate;
+  hour: number;
+  minute: number;
+  body: string;
+};
 
 /** A fixed shuffle of the phrase list (seeded LCG), so the order feels random but is stable. */
 function shuffledOrder(length: number): number[] {
@@ -32,12 +37,20 @@ function shuffledOrder(length: number): number[] {
 }
 
 const ORDER = shuffledOrder(KIND_NOTES.length);
+const dayNumber = (date: LocalDate) => diffDays(date, EPOCH);
+const mod = (a: number, n: number) => ((a % n) + n) % n;
 
 /** The phrase for a given day. Every phrase appears once before any repeats. */
 export function phraseForDay(date: LocalDate): string {
-  const n = KIND_NOTES.length;
-  const index = ((diffDays(date, EPOCH) % n) + n) % n;
-  return KIND_NOTES[ORDER[index]];
+  return KIND_NOTES[ORDER[mod(dayNumber(date), KIND_NOTES.length)]];
+}
+
+/** When the note for `date` arrives. Surprise times are stable per date, so rescheduling keeps them. */
+export function noteTimeFor(date: LocalDate, time: KindNoteTime): { hour: number; minute: number } {
+  if (time !== 'surprise') return { hour: time, minute: 0 };
+  const span = (SURPRISE_WINDOW.toHour - SURPRISE_WINDOW.fromHour) * 60;
+  const offset = mod(Math.imul(dayNumber(date) + 7919, 2654435761) >>> 7, span);
+  return { hour: SURPRISE_WINDOW.fromHour + Math.floor(offset / 60), minute: offset % 60 };
 }
 
 export function kindNoteId(date: LocalDate): string {
@@ -49,8 +62,8 @@ export function isKindNoteId(id: string): boolean {
 }
 
 /**
- * The notes to schedule from now on: starting today if the chosen hour hasn't passed yet,
- * otherwise tomorrow. Empty when turned off.
+ * The notes to schedule from now on: today's if its time is still ahead, then one a day.
+ * Empty when turned off.
  */
 export function planKindNotes(
   settings: KindNoteSettings,
@@ -58,20 +71,26 @@ export function planKindNotes(
   days: number = KIND_NOTE_DAYS_AHEAD,
 ): PlannedNote[] {
   if (!settings.enabled) return [];
-  const startsToday = now.hour < settings.hour;
-  const first = startsToday ? now.date : addDays(now.date, 1);
+  const today = noteTimeFor(now.date, settings.time);
+  const stillAhead = now.hour * 60 + now.minute < today.hour * 60 + today.minute;
+  const first = stillAhead ? now.date : addDays(now.date, 1);
   return Array.from({ length: days }, (_, i) => {
     const date = addDays(first, i);
-    return { id: kindNoteId(date), date, hour: settings.hour, body: phraseForDay(date) };
+    return {
+      id: kindNoteId(date),
+      date,
+      ...noteTimeFor(date, settings.time),
+      body: phraseForDay(date),
+    };
   });
 }
 
 /** Reads stored settings defensively; anything unexpected falls back to the defaults. */
 export function normalizeKindNotes(value: unknown): KindNoteSettings {
   if (typeof value !== 'object' || value === null) return DEFAULT_KIND_NOTES;
-  const { enabled, hour } = value as Record<string, unknown>;
+  const { enabled, time } = value as Record<string, unknown>;
   return {
-    enabled: enabled === true,
-    hour: KIND_NOTE_HOURS.some((h) => h === hour) ? (hour as number) : DEFAULT_KIND_NOTE_HOUR,
+    enabled: typeof enabled === 'boolean' ? enabled : DEFAULT_KIND_NOTES.enabled,
+    time: KIND_NOTE_TIMES.find((t) => t === time) ?? DEFAULT_KIND_NOTES.time,
   };
 }

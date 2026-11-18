@@ -39,8 +39,9 @@ export async function notificationsAllowed(): Promise<boolean> {
   return granted;
 }
 
-/** Asks once; on Android 13+ this shows the system prompt. */
+/** Asks once; on Android 13+ this shows the system prompt (which needs a channel to exist first). */
 export async function requestNotifications(): Promise<boolean> {
+  await configureNotifications();
   if (await notificationsAllowed()) return true;
   const { granted } = await Notifications.requestPermissionsAsync();
   return granted;
@@ -68,7 +69,7 @@ export async function syncKindNotes(settings: KindNoteSettings): Promise<void> {
       content: { title: KIND_NOTE_TITLE, body: note.body },
       trigger: {
         type: Notifications.SchedulableTriggerInputTypes.DATE,
-        date: atLocalTime(note.date, note.hour),
+        date: atLocalTime(note.date, note.hour, note.minute),
         channelId: CHANNEL_ID,
       },
     });

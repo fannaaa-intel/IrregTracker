@@ -8,7 +8,8 @@ const DISMISSED_FLAGS = 'dismissed_flags';
 const ONBOARDING_DONE = 'onboarding_done';
 const KIND_NOTES = 'kind_notes';
 
-export type StoredKindNotes = { enabled: boolean; hour: number };
+/** `time` is 'surprise' or an hour of day (0–23). */
+export type StoredKindNotes = { enabled: boolean; time: 'surprise' | number };
 
 async function readJson(db: Db, key: string): Promise<unknown> {
   const row = await db.getFirstAsync<{ value: string }>(
@@ -70,10 +71,11 @@ export const settingRepo = {
   async getKindNotes(db: Db): Promise<StoredKindNotes | null> {
     const value = await readJson(db, KIND_NOTES);
     if (typeof value !== 'object' || value === null) return null;
-    const { enabled, hour } = value as Record<string, unknown>;
-    if (typeof enabled !== 'boolean' || !Number.isInteger(hour)) return null;
-    const h = hour as number;
-    return h >= 0 && h <= 23 ? { enabled, hour: h } : null;
+    const { enabled, time } = value as Record<string, unknown>;
+    if (typeof enabled !== 'boolean') return null;
+    if (time === 'surprise') return { enabled, time };
+    if (typeof time !== 'number' || !Number.isInteger(time) || time < 0 || time > 23) return null;
+    return { enabled, time };
   },
 
   async setKindNotes(db: Db, settings: StoredKindNotes): Promise<void> {

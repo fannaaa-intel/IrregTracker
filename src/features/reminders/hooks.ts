@@ -4,15 +4,24 @@ import { AppState } from 'react-native';
 import { useDb } from '../../db/DatabaseProvider';
 import { notifyDbChange, useLiveQuery } from '../../db/live-query';
 import { settingRepo } from '../../db/repositories/setting-repo';
-import { normalizeKindNotes, type KindNoteSettings } from './logic';
-import { requestNotifications, syncKindNotes } from './scheduler';
+import type { Db } from '../../db/types';
+import { normalizeKindNotes, type KindNoteSettings, type KindNoteTime } from './logic';
+import { notificationsAllowed, requestNotifications, syncKindNotes } from './scheduler';
+
+async function syncFromDb(db: Db): Promise<void> {
+  await syncKindNotes(normalizeKindNotes(await settingRepo.getKindNotes(db)));
+}
 
 /** Settings → Kind notes: current settings, permission state, and actions that reschedule. */
 export function useKindNotes() {
   const db = useDb();
   const stored = useLiveQuery((d) => settingRepo.getKindNotes(d));
-  const [denied, setDenied] = useState(false);
+  const [allowed, setAllowed] = useState<boolean | undefined>(undefined);
   const settings = stored === undefined ? undefined : normalizeKindNotes(stored);
+
+  useEffect(() => {
+    void notificationsAllowed().then(setAllowed);
+  }, []);
 
   const save = async (next: KindNoteSettings) => {
     await settingRepo.setKindNotes(db, next);
@@ -22,19 +31,29 @@ export function useKindNotes() {
 
   return {
     settings,
-    denied,
+    /** On, but the phone blocks notifications: show how to allow them. */
+    blocked: settings?.enabled === true && allowed === false,
     setEnabled: async (enabled: boolean) => {
       if (settings === undefined) return;
-      if (enabled && !(await requestNotifications())) {
-        setDenied(true);
-        return;
-      }
-      setDenied(false);
+      if (enabled) setAllowed(await requestNotifications());
       await save({ ...settings, enabled });
     },
-    setHour: async (hour: number) => {
-      if (settings !== undefined) await save({ ...settings, hour });
+    setTime: async (time: KindNoteTime) => {
+      if (settings !== undefined) await save({ ...settings, time });
     },
+  };
+}
+
+/** End of the welcome cards: the one-time system prompt, then the first notes are scheduled. */
+export function useStartKindNotes(): () => Promise<void> {
+  const db = useDb();
+  return async () => {
+    try {
+      await requestNotifications();
+      await syncFromDb(db);
+    } catch {
+      console.warn('Kind notes could not be started.');
+    }
   };
 }
 
@@ -47,7 +66,7 @@ export function useKindNotesSync(): void {
   useEffect(() => {
     const sync = async () => {
       try {
-        await syncKindNotes(normalizeKindNotes(await settingRepo.getKindNotes(db)));
+        await syncFromDb(db);
       } catch {
         // Never log settings or note content (CLAUDE.md §1.3). A failed top-up retries next open.
         console.warn('Kind notes could not be scheduled.');

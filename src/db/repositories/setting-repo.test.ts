@@ -35,10 +35,12 @@ describeSql('settingRepo', () => {
 
   it('stores kind-note settings and rejects malformed values', async () => {
     expect(await settingRepo.getKindNotes(db)).toBeNull();
-    await settingRepo.setKindNotes(db, { enabled: true, hour: 21 });
-    expect(await settingRepo.getKindNotes(db)).toEqual({ enabled: true, hour: 21 });
+    await settingRepo.setKindNotes(db, { enabled: false, time: 'surprise' });
+    expect(await settingRepo.getKindNotes(db)).toEqual({ enabled: false, time: 'surprise' });
+    await settingRepo.setKindNotes(db, { enabled: true, time: 18 });
+    expect(await settingRepo.getKindNotes(db)).toEqual({ enabled: true, time: 18 });
     await db.runAsync(
-      'UPDATE setting SET value = \'{"enabled":true,"hour":24}\' WHERE key = \'kind_notes\';',
+      'UPDATE setting SET value = \'{"enabled":true,"time":24}\' WHERE key = \'kind_notes\';',
     );
     expect(await settingRepo.getKindNotes(db)).toBeNull();
   });

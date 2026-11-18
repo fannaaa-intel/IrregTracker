@@ -6,28 +6,32 @@ import { Chip } from '@/components/Chip';
 import { formatHour } from '@/lib/date';
 import { spacing, typography, useThemeColors } from '@/theme';
 
-import { KIND_NOTE_HOURS } from '../logic';
+import { KIND_NOTE_TIMES, type KindNoteTime } from '../logic';
 
 type Props = {
   enabled: boolean;
-  hour: number;
-  /** Notifications are blocked in the phone's settings. */
-  denied: boolean;
+  time: KindNoteTime;
+  /** On, but notifications are blocked in the phone's settings. */
+  blocked: boolean;
   /** Today's phrase, shown as an example. */
   example: string;
   onToggle: (enabled: boolean) => void;
-  onHourChange: (hour: number) => void;
+  onTimeChange: (time: KindNoteTime) => void;
   onOpenPhoneSettings: () => void;
 };
 
-/** Settings → Kind notes: one gentle, discreet message a day at a time she picks. */
+export function timeLabel(time: KindNoteTime): string {
+  return time === 'surprise' ? 'Evening surprise' : formatHour(time);
+}
+
+/** Settings → Kind notes: one gentle, discreet message a day. On by default. */
 export function KindNotesCard({
   enabled,
-  hour,
-  denied,
+  time,
+  blocked,
   example,
   onToggle,
-  onHourChange,
+  onTimeChange,
   onOpenPhoneSettings,
 }: Props) {
   const colors = useThemeColors();
@@ -54,22 +58,27 @@ export function KindNotesCard({
 
       {enabled ? (
         <View style={styles.section}>
-          <Text style={[typography.label, { color: colors.text }]}>Time</Text>
+          <Text style={[typography.label, { color: colors.text }]}>When</Text>
           <View accessibilityRole="radiogroup" style={styles.chips}>
-            {KIND_NOTE_HOURS.map((h) => (
+            {KIND_NOTE_TIMES.map((t) => (
               <Chip
-                key={h}
-                label={formatHour(h)}
-                selected={h === hour}
+                key={String(t)}
+                label={timeLabel(t)}
+                selected={t === time}
                 accessibilityRole="radio"
-                onPress={() => onHourChange(h)}
+                onPress={() => onTimeChange(t)}
               />
             ))}
           </View>
+          {time === 'surprise' ? (
+            <Text style={[typography.caption, { color: colors.textMuted }]}>
+              A different moment each evening, between 8 PM and midnight.
+            </Text>
+          ) : null}
         </View>
       ) : null}
 
-      {denied ? (
+      {blocked ? (
         <View style={styles.section}>
           <Text style={[typography.body, { color: colors.notice }]}>
             Notifications are turned off for this app. You can allow them in your phone&apos;s
