@@ -10,7 +10,7 @@
     "userInterfaceStyle": "automatic",
     "backgroundColor": "#FFF8FA",
     "ios": {
-      "icon": "./assets/expo.icon",
+      "icon": "./assets/images/icon.png",
       "bundleIdentifier": "com.fannaaa.cycle"
     },
     "android": {
@@ -18,7 +18,7 @@
       "versionCode": 1,
       "allowBackup": false,
       "adaptiveIcon": {
-        "backgroundColor": "#FCE8EF",
+        "backgroundColor": "#FCDCE8",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
@@ -32,7 +32,7 @@
         {
           "backgroundColor": "#FFF8FA",
           "image": "./assets/images/splash-icon.png",
-          "imageWidth": 76,
+          "imageWidth": 160,
           "dark": {
             "backgroundColor": "#1C1418"
           }
@@ -61,6 +61,11 @@
     "extra": {
       "eas": {
         "projectId": "601e0cbe-9783-422c-acaf-009f9cc945bc"
+      },
+      "router": {
+        "asyncRoutes": {
+          "web": true
+        }
       }
     }
   }
