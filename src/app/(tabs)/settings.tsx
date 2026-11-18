@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Card } from '@/components/Card';
 import { AppearanceSection } from '@/features/appearance/components/AppearanceSection';
 import { AppLockSection, YourDataSection } from '@/features/privacy/components/PrivacySections';
+import { CycleSettingsCards } from '@/features/reminders/components/CycleSettingsCards';
 import { KindNotesSection } from '@/features/reminders/components/KindNotesSection';
 import { UpdateRow } from '@/features/updates/components/UpdateRow';
 import { spacing, typography, useThemeColors } from '@/theme';
@@ -19,6 +20,7 @@ export default function SettingsScreen() {
         </Text>
 
         <AppearanceSection />
+        <CycleSettingsCards />
         <KindNotesSection />
         <AppLockSection />
         <YourDataSection />
@@ -39,8 +41,8 @@ export default function SettingsScreen() {
             About
           </Text>
           <Text style={[typography.body, { color: colors.text }]}>
-            Cycle Tracker is not a medical device and is not a form of contraception. Predictions
-            are estimates from your own past cycles.
+            Cycle Tracker is not a medical device and is not a form of contraception. Predictions,
+            fertile days and ovulation are estimates from your own past cycles.
           </Text>
           <Text style={[typography.body, { color: colors.textMuted }]}>
             If something about your cycle worries you, it can be worth talking to a doctor.

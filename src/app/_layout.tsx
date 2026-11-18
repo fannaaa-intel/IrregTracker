@@ -16,6 +16,7 @@ import { AppearanceFader } from '@/features/appearance/components/AppearanceFade
 import { applyStoredAppearance } from '@/features/appearance/store';
 import { AppLockGate } from '@/features/lock/components/AppLockGate';
 import { OpeningOverlay } from '@/features/opening/components/OpeningOverlay';
+import { CycleRemindersSync } from '@/features/reminders/components/CycleRemindersSync';
 import { KindNotesSync } from '@/features/reminders/components/KindNotesSync';
 import { UpdateBanner } from '@/features/updates/components/UpdateBanner';
 import { UpdateRow } from '@/features/updates/components/UpdateRow';
@@ -98,6 +99,7 @@ export default function RootLayout() {
             <UpdateBanner />
           </AppLockGate>
           <KindNotesSync />
+          <CycleRemindersSync />
         </DatabaseProvider>
       )}
       {opening ? <OpeningOverlay onDone={endOpening} /> : null}

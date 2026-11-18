@@ -5,9 +5,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/Button';
 import { BackfillBar } from '@/features/logging/components/BackfillBar';
-import { CalendarLegend } from '@/features/logging/components/CalendarLegend';
 import { CalendarMonth } from '@/features/logging/components/CalendarMonth';
+import { LayerChips } from '@/features/logging/components/LayerChips';
+import { MonthSwiper } from '@/features/logging/components/MonthSwiper';
 import { useCalendar } from '@/features/logging/hooks';
+import { MonthReportCard } from '@/features/reports/components/MonthReportCard';
 import { todayLocal } from '@/lib/date';
 import { spacing, typography, useThemeColors } from '@/theme';
 
@@ -45,15 +47,36 @@ export default function CalendarScreen() {
           <Text style={[typography.body, { color: colors.textMuted }]}>
             Tap each day you had your period. You can move between months.
           </Text>
-        ) : null}
-        <CalendarMonth
-          grid={calendar.grid}
-          onDayPress={onDayPress}
-          onPrevMonth={calendar.goPrev}
-          onNextMonth={calendar.goNext}
+        ) : (
+          <LayerChips
+            visible={calendar.visible}
+            onToggle={calendar.toggleLayer}
+            showFertile={calendar.showFertile}
+          />
+        )}
+        <MonthSwiper
+          monthKey={calendar.monthKey}
+          onPrev={calendar.goPrev}
+          onNext={calendar.goNext}
           canGoNext={calendar.canGoNext}
-        />
-        <CalendarLegend />
+        >
+          <CalendarMonth
+            grid={calendar.grid}
+            onDayPress={onDayPress}
+            onPrevMonth={calendar.goPrev}
+            onNextMonth={calendar.goNext}
+            canGoNext={calendar.canGoNext}
+          />
+        </MonthSwiper>
+        {backfill ? null : (
+          <Text style={[typography.caption, styles.hint, { color: colors.textMuted }]}>
+            Swipe to change month. Today has a ring. Tap any past day to log your period, how you
+            feel, or sex.
+          </Text>
+        )}
+        {!backfill && calendar.report !== null ? (
+          <MonthReportCard report={calendar.report} />
+        ) : null}
       </ScrollView>
       {backfill ? (
         <BackfillBar
@@ -73,15 +96,19 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   content: {
-    gap: spacing.lg,
+    gap: spacing.xl,
     paddingHorizontal: spacing.xl,
     paddingTop: spacing.xl,
-    paddingBottom: spacing.xxl,
+    paddingBottom: spacing.xxxl,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     flexWrap: 'wrap',
+    gap: spacing.sm,
+  },
+  hint: {
+    textAlign: 'center',
   },
 });

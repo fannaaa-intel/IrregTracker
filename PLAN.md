@@ -16,7 +16,7 @@ Nothing leaves the phone: no account, no server, no analytics.
 
 ## Non-goals (we chose to leave these out)
 
-- Fertile window / ovulation / "safe days". These are unreliable with irregular cycles and risky if someone relies on them.
+- "Safe days". Unreliable with irregular cycles and risky if someone relies on them. (Fertile days and ovulation were also left out of v1; the owner added them on Nov 18, 2026 as ranges with "not contraception" everywhere. See CLAUDE.md §2.2.)
 - Accounts, cloud sync, partner sharing.
 - AI/ML predictions. A median-based window is just as good with one person's data and easier to trust.
 - Streaks, badges, gamification.
@@ -150,13 +150,19 @@ CREATE TABLE setting (
   value TEXT NOT NULL                         -- JSON
 );
 
--- v1.5
+-- v2 migration (Nov 18, 2026). Severity was dropped: one tap per symptom keeps logging fast.
 CREATE TABLE symptom (
   date     TEXT NOT NULL,
-  type     TEXT NOT NULL,
-  severity INTEGER NOT NULL CHECK (severity BETWEEN 1 AND 3),
+  type     TEXT NOT NULL,              -- validated in code (features/symptoms/logic.ts)
   PRIMARY KEY (date, type)
 );
+
+CREATE TABLE intimacy (
+  date        TEXT PRIMARY KEY,
+  protection  TEXT NOT NULL CHECK (protection IN ('protected','unprotected'))
+);
+
+-- not built yet
 
 CREATE TABLE note (
   date TEXT PRIMARY KEY,
@@ -191,6 +197,7 @@ confidence:
   medium  n >= 4 and stdev <= 7
   low     otherwise
 late    = today > window.end   → "Your period is X days later than the usual range"
+          and the shown window moves to [today, today + width], confidence low (like Clue/Fitbit)
 ```
 - Copy always says **"likely between"**, never "due on".
 - Show the window on the calendar as a soft dashed band, not as filled days.
@@ -285,6 +292,16 @@ Show one gentle card at a time on Home, dismissible, with a "Why am I seeing thi
 - [x] App icon without the alert badge
 - [x] Her first APK is version 1.2.0 (versionCode 3), with M6 + M7 included
 - [ ] Check on a phone: permission prompt, a note arrives at the chosen time, lock-screen text
+
+### Her feedback round 1 (added Nov 18 at the owner's request)
+- [x] Late period: window moves forward to start today, "X days later than the usual range", "Log a start I missed"
+- [x] Possible fertile days + likely ovulation (ranges, calendar method, not contraception; Settings toggle)
+- [x] Daily symptoms (cramps, back pain, bloating and 9 more), one tap each, in the Day editor
+- [x] Sex log (protected / unprotected), heart on the calendar, calm safer-sex notes (CDC, ACOG)
+- [x] Cycle reminders (local): heads-up 2 days before, "did it start?", late check-ins at 1, 3, 7 days, fertile days tomorrow; neutral text unless details are on
+- [x] Calendar: swipe between months, filter chips (also the legend), "Month at a glance" report
+- [x] Backups include symptoms and sex logs (schema 2; schema-1 backups still restore)
+- [ ] Check on her phone after the update: migration runs, reminders arrive, swipe feels right
 
 ### M5: Flags + onboarding
 - [x] Flag cards + explanation screen

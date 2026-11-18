@@ -1,5 +1,12 @@
 import type { Flow } from '../../theme';
-import { buildMonthGrid, dayLabel, weekdayInitials, windowSegments, type DayCell } from './logic';
+import {
+  buildMonthGrid,
+  dayLabel,
+  fertileSegments,
+  weekdayInitials,
+  windowSegments,
+  type DayCell,
+} from './logic';
 
 const MARCH_2026 = { year: 2026, month: 3 }; // starts on a Sunday, 31 days
 const APRIL_2026 = { year: 2026, month: 4 }; // starts on a Wednesday, 30 days
@@ -67,6 +74,46 @@ describe('windowSegments', () => {
   });
 });
 
+describe('fertile days on the grid', () => {
+  const fertile = {
+    fertile: { start: '2026-03-08', end: '2026-03-14' },
+    ovulation: { start: '2026-03-10', end: '2026-03-12' },
+  };
+
+  it('marks fertile and ovulation days, both ends inclusive', () => {
+    const cells = cellsOf(buildMonthGrid(MARCH_2026, { ...noData, fertile }));
+    const kind = (day: number) => cells[day - 1].fertility;
+    expect([7, 8, 9, 10, 12, 13, 14, 15].map(kind)).toEqual([
+      null,
+      'fertile',
+      'fertile',
+      'ovulation',
+      'ovulation',
+      'fertile',
+      'fertile',
+      null,
+    ]);
+  });
+
+  it('joins fertile and ovulation days into one band per week', () => {
+    const week = buildMonthGrid(MARCH_2026, { ...noData, fertile }).weeks[1]; // Mar 8–14
+    expect(fertileSegments(week)).toEqual([{ from: 0, to: 6 }]);
+    expect(fertileSegments(buildMonthGrid(MARCH_2026, noData).weeks[1])).toEqual([]);
+  });
+
+  it('marks days with sex or symptoms logged', () => {
+    const cells = cellsOf(
+      buildMonthGrid(MARCH_2026, {
+        ...noData,
+        intimacy: new Set(['2026-03-05']),
+        symptoms: new Set(['2026-03-06']),
+      }),
+    );
+    expect(cells[4]).toMatchObject({ hasIntimacy: true, hasSymptoms: false });
+    expect(cells[5]).toMatchObject({ hasIntimacy: false, hasSymptoms: true });
+  });
+});
+
 describe('dayLabel', () => {
   const base: DayCell = {
     date: '2026-03-03',
@@ -84,6 +131,16 @@ describe('dayLabel', () => {
     [{ isToday: true }, 'March 3, today, nothing logged'],
     [{ inWindow: true }, 'March 3, in the likely period window'],
     [{ flow: 'heavy' as Flow, selected: true }, 'March 3, period day, heavy flow, selected'],
+    [{ fertility: 'fertile' as const }, 'March 3, possible fertile day'],
+    [
+      { fertility: 'ovulation' as const, isToday: true },
+      'March 3, today, possible fertile day, likely ovulation',
+    ],
+    [{ hasIntimacy: true }, 'March 3, sex logged'],
+    [
+      { flow: 'light' as Flow, hasSymptoms: true, hasIntimacy: true },
+      'March 3, period day, light flow, symptoms logged, sex logged',
+    ],
   ])('describes %o', (change, label) => {
     expect(dayLabel({ ...base, ...change }, 'en-US')).toBe(label);
   });

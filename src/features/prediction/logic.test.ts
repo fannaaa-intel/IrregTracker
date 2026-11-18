@@ -116,4 +116,27 @@ describe('late', () => {
     expect(predict(regular, [], addDays(end, 1))).toMatchObject({ daysLate: 1 });
     expect(predict(regular, [], addDays(end, 9))).toMatchObject({ daysLate: 9 });
   });
+
+  it('keeps the usual window on the last day, with its own confidence', () => {
+    const onTime = windowOf(predict(regular, [], end));
+    expect(onTime.window).toEqual(onTime.usual);
+    expect(onTime.confidence).toBe('high');
+  });
+
+  it('moves the window to start today once a day late, same width, low confidence', () => {
+    const usual = windowOf(predict(regular)).usual;
+    const today = addDays(end, 1);
+    const late = windowOf(predict(regular, [], today));
+    expect(late.usual).toEqual(usual);
+    expect(late.window.start).toBe(today);
+    expect(diffDays(late.window.end, late.window.start)).toBe(diffDays(usual.end, usual.start));
+    expect(late.confidence).toBe('low');
+  });
+
+  it('keeps moving forward while no period is logged', () => {
+    const today = addDays(end, 26);
+    const late = windowOf(predict(regular, [], today));
+    expect(late.window.start).toBe(today);
+    expect(late.daysLate).toBe(26);
+  });
 });

@@ -13,7 +13,7 @@ export const ONBOARDING_CARDS: readonly OnboardingCard[] = [
     key: 'welcome',
     title: 'A calm place for your cycle',
     body: 'Log a period day with one tap. The app learns from your own cycles and shows a likely window, never a single date. Irregular cycles are welcome here.',
-    note: 'Not a medical device and not contraception. It never predicts fertile days.',
+    note: 'Not a medical device and not contraception. Fertile days are only rough estimates.',
   },
   {
     key: 'privacy',

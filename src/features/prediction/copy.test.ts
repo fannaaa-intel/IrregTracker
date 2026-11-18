@@ -1,7 +1,7 @@
 import { addDays } from '../../lib/date';
 import { onlyTwoCycles, regular } from '../__fixtures__/histories';
 import { deriveCycles } from '../cycles/logic';
-import { learningText, lateText, windowText } from './copy';
+import { lateHint, learningText, lateText, windowText } from './copy';
 import { predictNextPeriod, type Prediction } from './logic';
 
 function windowPrediction(today: string): Extract<Prediction, { state: 'window' }> {
@@ -31,6 +31,15 @@ describe('prediction copy', () => {
     expect(lateText(windowPrediction(addDays(end, 4)))).toBe(
       'Your period is 4 days later than the usual range',
     );
+  });
+
+  it('explains the moved window only when late', () => {
+    expect(lateHint(onTime, 'en-US')).toBeNull();
+    const late = windowPrediction(addDays(onTime.window.end, 2));
+    const hint = lateHint(late, 'en-US') ?? '';
+    expect(hint).toContain('starts today');
+    expect(hint).toContain('log its first day');
+    expect(windowText(late, 'en-US')).toMatch(/^Likely between /);
   });
 
   it('explains how many cycles are still needed while learning', () => {

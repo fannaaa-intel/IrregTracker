@@ -6,8 +6,9 @@ import { Blob } from '@/components/Blob';
 import { Button } from '@/components/Button';
 import { Card } from '@/components/Card';
 import { CycleRing } from '@/features/cycles/components/CycleRing';
-import { useCycleOverview } from '@/features/cycles/hooks';
+import { useCycleOverview, useFertileDaysOn } from '@/features/cycles/hooks';
 import { ringModel } from '@/features/cycles/summary';
+import { FertilityCard } from '@/features/fertility/components/FertilityCard';
 import { FlagCard } from '@/features/flags/components/FlagCard';
 import { useFlagCard } from '@/features/flags/hooks';
 import { useOnboardingState } from '@/features/onboarding/hooks';
@@ -22,9 +23,14 @@ export default function HomeScreen() {
   const overview = useCycleOverview(today);
   const { flag, dismiss } = useFlagCard(overview, today);
   const onboarding = useOnboardingState();
+  const fertileOn = useFertileDaysOn() === true;
 
   const logToday = () => router.push({ pathname: '/log/[date]', params: { date: today } });
   const open = overview?.history.open ?? null;
+  const prediction = overview?.prediction;
+  const isLate = prediction?.state === 'window' && prediction.daysLate > 0;
+  // Shown with an estimate, or (late) to explain why estimates paused. Hidden while learning.
+  const showFertile = fertileOn && (overview?.fertile != null || isLate);
   const ring =
     overview !== undefined && open !== null
       ? ringModel(open, overview.prediction, today, overview.summary?.typical ?? null)
@@ -62,8 +68,12 @@ export default function HomeScreen() {
         ) : (
           <>
             {ring !== null ? <CycleRing model={ring} /> : null}
-            <PredictionCard prediction={overview.prediction} />
+            <PredictionCard
+              prediction={overview.prediction}
+              onLogMissedStart={() => router.navigate('/calendar')}
+            />
             <Button label="Log today" onPress={logToday} />
+            {showFertile ? <FertilityCard estimate={overview.fertile} /> : null}
             {flag !== null ? (
               <FlagCard
                 flag={flag}

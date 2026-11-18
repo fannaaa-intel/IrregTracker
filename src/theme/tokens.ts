@@ -16,6 +16,7 @@ export const lightColors = {
   notice: '#8A5A1F',
   noticeBg: '#FDF1E3',
   calm: '#2F6B4F',
+  fertile: '#DDF1E8', // decorative only: the possible-fertile-days band
 } as const;
 
 export const darkColors: Record<keyof typeof lightColors, string> = {
@@ -33,6 +34,7 @@ export const darkColors: Record<keyof typeof lightColors, string> = {
   notice: '#E8B97A',
   noticeBg: '#33261A',
   calm: '#8CC8A8',
+  fertile: '#1F3A31',
 };
 
 export type ColorToken = keyof typeof lightColors;

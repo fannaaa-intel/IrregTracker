@@ -59,8 +59,9 @@ export function ringModel(
   if (day === null) return null;
 
   if (prediction.state === 'window') {
-    const from = diffDays(prediction.window.start, open.start);
-    const to = diffDays(prediction.window.end, open.start);
+    // The usual range, not the moved-forward window: "of usually 26–34" stays true when late.
+    const from = diffDays(prediction.usual.start, open.start);
+    const to = diffDays(prediction.usual.end, open.start);
     const total = Math.max(to, day);
     return {
       day,

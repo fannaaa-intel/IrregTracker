@@ -33,6 +33,23 @@ export const migrations: readonly Migration[] = [
       );
     `,
   },
+  {
+    // Nov 18, 2026: daily symptoms and intimacy (her feedback). Types are validated in code, so
+    // new symptom names never need a migration.
+    version: 2,
+    up: `
+      CREATE TABLE symptom (
+        date  TEXT NOT NULL,
+        type  TEXT NOT NULL,
+        PRIMARY KEY (date, type)
+      );
+
+      CREATE TABLE intimacy (
+        date        TEXT PRIMARY KEY,
+        protection  TEXT NOT NULL CHECK (protection IN ('protected','unprotected'))
+      );
+    `,
+  },
 ];
 
 function assertSequential(steps: readonly Migration[]): void {

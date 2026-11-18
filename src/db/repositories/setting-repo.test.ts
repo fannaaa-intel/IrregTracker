@@ -53,6 +53,24 @@ describeSql('settingRepo', () => {
     expect(await settingRepo.isAppLockOn(db)).toBe(false);
   });
 
+  it('shows fertile days unless turned off', async () => {
+    expect(await settingRepo.isFertileDaysOn(db)).toBe(true);
+    await settingRepo.setFertileDays(db, false);
+    expect(await settingRepo.isFertileDaysOn(db)).toBe(false);
+    await settingRepo.setFertileDays(db, true);
+    expect(await settingRepo.isFertileDaysOn(db)).toBe(true);
+  });
+
+  it('stores cycle reminder settings and rejects malformed values', async () => {
+    expect(await settingRepo.getCycleReminders(db)).toBeNull();
+    await settingRepo.setCycleReminders(db, { enabled: true, details: false });
+    expect(await settingRepo.getCycleReminders(db)).toEqual({ enabled: true, details: false });
+    await db.runAsync(
+      `UPDATE setting SET value = '{"enabled":true}' WHERE key = 'cycle_reminders';`,
+    );
+    expect(await settingRepo.getCycleReminders(db)).toBeNull();
+  });
+
   it('tracks whether onboarding was finished', async () => {
     expect(await settingRepo.isOnboardingDone(db)).toBe(false);
     await settingRepo.setOnboardingDone(db);

@@ -15,12 +15,12 @@ Read `PLAN.md` for scope, `docs/DESIGN.md` for UI, `docs/HEALTH_RULES.md` for me
 3. **Never log health data.** No `console.log` of dates, flows, symptoms, or notes, even in dev. Log IDs/counts only.
 4. **The encryption key lives only in SecureStore.** Never put it in state, AsyncStorage, files, or logs.
 5. **Exports are always encrypted** with a user passphrase.
-6. Notification text must be **neutral by default** ("Reminder from Cycle", not "Your period is coming").
+6. Notification text must be **neutral by default** ("Reminder from Cycle", not "Your period is coming"). Cycle reminders only show details when she turns on "Show details on the lock screen".
 
 ## 2. Health & wording rules
 
 1. **Never show a single predicted date.** Always a window: "likely between Dec 3 and Dec 12".
-2. **Never show fertility, ovulation, or "safe day" predictions** in v1/v1.5.
+2. **Never show "safe days".** Fertile days and ovulation were left out of v1; **owner decision (Nov 18, 2026):** they are now shown, only as ranges from her own cycles (calendar method, `features/fertility/`), hidden while still learning or late, switchable off in Settings, and every place they appear says it **isn't contraception**. Never present any day as "safe". Method and sources: `docs/HEALTH_RULES.md`.
 3. **Never diagnose.** Don't write "You have PCOS / amenorrhea / a problem". Write "This can be worth mentioning to a doctor."
 4. Flags are calm: no red, no ⚠️, no exclamation marks. Use the `notice` color tokens.
 5. Every medical threshold must come from `docs/HEALTH_RULES.md`. Don't hard-code numbers in UI; import them from `features/flags/thresholds.ts`.

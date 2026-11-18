@@ -7,6 +7,8 @@ export type DbSnapshot = {
   periodDays: { date: string; flow: string; createdAt: string; updatedAt: string }[];
   cycleTags: { cycleStart: string; reason: string; note: string | null; exclude: boolean }[];
   settings: { key: string; value: string }[];
+  symptoms: { date: string; type: string }[];
+  intimacy: { date: string; protection: string }[];
 };
 
 type DayRow = { date: string; flow: string; created_at: string; updated_at: string };
@@ -25,6 +27,12 @@ export const backupRepo = {
     const settings = await db.getAllAsync<{ key: string; value: string }>(
       'SELECT key, value FROM setting ORDER BY key;',
     );
+    const symptoms = await db.getAllAsync<{ date: string; type: string }>(
+      'SELECT date, type FROM symptom ORDER BY date, type;',
+    );
+    const intimacy = await db.getAllAsync<{ date: string; protection: string }>(
+      'SELECT date, protection FROM intimacy ORDER BY date;',
+    );
     return {
       schemaVersion: version?.user_version ?? 0,
       periodDays: days.map((r) => ({
@@ -40,6 +48,8 @@ export const backupRepo = {
         exclude: r.exclude === 1,
       })),
       settings: settings.filter((s) => !skipSettings.includes(s.key)),
+      symptoms,
+      intimacy,
     };
   },
 
@@ -51,6 +61,8 @@ export const backupRepo = {
     await runInTransaction(db, async (txn) => {
       await txn.runAsync('DELETE FROM period_day;');
       await txn.runAsync('DELETE FROM cycle_tag;');
+      await txn.runAsync('DELETE FROM symptom;');
+      await txn.runAsync('DELETE FROM intimacy;');
       const placeholders = keepSettings.map(() => '?').join(', ');
       await txn.runAsync(
         keepSettings.length > 0
@@ -69,6 +81,15 @@ export const backupRepo = {
           'INSERT INTO cycle_tag (cycle_start, reason, note, exclude) VALUES (?, ?, ?, ?);',
           [t.cycleStart, t.reason, t.note, t.exclude ? 1 : 0],
         );
+      }
+      for (const s of data.symptoms) {
+        await txn.runAsync('INSERT INTO symptom (date, type) VALUES (?, ?);', [s.date, s.type]);
+      }
+      for (const d of data.intimacy) {
+        await txn.runAsync('INSERT INTO intimacy (date, protection) VALUES (?, ?);', [
+          d.date,
+          d.protection,
+        ]);
       }
       for (const s of data.settings) {
         if (keepSettings.includes(s.key)) continue;

@@ -8,9 +8,13 @@ const DISMISSED_FLAGS = 'dismissed_flags';
 const ONBOARDING_DONE = 'onboarding_done';
 const KIND_NOTES = 'kind_notes';
 const APP_LOCK = 'app_lock'; // device-only: never in backups (features/backup/format.ts)
+const FERTILE_DAYS = 'fertile_days';
+const CYCLE_REMINDERS = 'cycle_reminders';
 
 /** `time` is 'surprise' or an hour of day (0–23). */
 export type StoredKindNotes = { enabled: boolean; time: 'surprise' | number };
+/** `details` = say what the reminder is about on the lock screen (off by default, CLAUDE.md §1.6). */
+export type StoredCycleReminders = { enabled: boolean; details: boolean };
 
 async function readJson(db: Db, key: string): Promise<unknown> {
   const row = await db.getFirstAsync<{ value: string }>(
@@ -89,5 +93,27 @@ export const settingRepo = {
 
   async setAppLock(db: Db, on: boolean): Promise<void> {
     await writeJson(db, APP_LOCK, on);
+  },
+
+  /** Show possible fertile days on Home and the calendar. On unless she turned it off. */
+  async isFertileDaysOn(db: Db): Promise<boolean> {
+    return (await readJson(db, FERTILE_DAYS)) !== false;
+  },
+
+  async setFertileDays(db: Db, on: boolean): Promise<void> {
+    await writeJson(db, FERTILE_DAYS, on);
+  },
+
+  /** Cycle reminder settings, or null when never set or unreadable. */
+  async getCycleReminders(db: Db): Promise<StoredCycleReminders | null> {
+    const value = await readJson(db, CYCLE_REMINDERS);
+    if (typeof value !== 'object' || value === null) return null;
+    const { enabled, details } = value as Record<string, unknown>;
+    if (typeof enabled !== 'boolean' || typeof details !== 'boolean') return null;
+    return { enabled, details };
+  },
+
+  async setCycleReminders(db: Db, settings: StoredCycleReminders): Promise<void> {
+    await writeJson(db, CYCLE_REMINDERS, settings);
   },
 };

@@ -24,11 +24,17 @@ export type Prediction =
     }
   | {
       state: 'window';
-      /** "Likely between start and end", both inclusive. */
+      /**
+       * The window to show: "likely between start and end", both inclusive. Once she is past the
+       * usual range with no new period logged, it moves forward to start today (like Clue and
+       * Fitbit do), so it never points at days that have already gone by.
+       */
       window: { start: LocalDate; end: LocalDate };
+      /** The window from her history alone; equal to `window` until she is late. */
+      usual: { start: LocalDate; end: LocalDate };
       confidence: Confidence;
       cyclesCounted: number;
-      /** Days past the window's end with no new period logged; 0 when not late. */
+      /** Days past the usual window's end with no new period logged; 0 when not late. */
       daysLate: number;
     };
 
@@ -68,14 +74,31 @@ export function predictNextPeriod(
   const spread = halfWidth(lengths);
   const lastStart = history.open.start;
   // The median can be a half day; round outward so the window is never narrower than the rule.
-  const start = addDays(lastStart, Math.floor(center - spread));
-  const end = addDays(lastStart, Math.ceil(center + spread));
+  const usual = {
+    start: addDays(lastStart, Math.floor(center - spread)),
+    end: addDays(lastStart, Math.ceil(center + spread)),
+  };
+  const daysLate = Math.max(diffDays(today, usual.end), 0);
+  if (daysLate === 0) {
+    return {
+      state: 'window',
+      window: usual,
+      usual,
+      confidence: confidenceFor(lengths),
+      cyclesCounted: lengths.length,
+      daysLate,
+    };
+  }
 
+  // Late: keep the same width, starting today. Her history no longer explains this cycle,
+  // so confidence drops to low until the next period is logged.
+  const width = diffDays(usual.end, usual.start);
   return {
     state: 'window',
-    window: { start, end },
-    confidence: confidenceFor(lengths),
+    window: { start: today, end: addDays(today, width) },
+    usual,
+    confidence: 'low',
     cyclesCounted: lengths.length,
-    daysLate: Math.max(diffDays(today, end), 0),
+    daysLate,
   };
 }

@@ -13,6 +13,9 @@ import type { Flow } from '../../theme';
 
 export type DateWindow = { start: LocalDate; end: LocalDate };
 
+/** Possible fertile days, with likely ovulation days inside them (features/fertility). */
+export type FertileDays = { fertile: DateWindow; ovulation: DateWindow };
+
 export type DayCell = {
   date: LocalDate;
   dayOfMonth: number;
@@ -23,6 +26,12 @@ export type DayCell = {
   /** Inside the predicted window and not logged: drawn as the dashed band. */
   inWindow: boolean;
   selected: boolean;
+  /** Estimate only: drawn as a soft solid band, ovulation days also get a flower mark. */
+  fertility?: 'fertile' | 'ovulation' | null;
+  /** Sex logged that day: a small heart. */
+  hasIntimacy?: boolean;
+  /** Any symptom logged that day: a small ring. */
+  hasSymptoms?: boolean;
 };
 
 /** Weeks start on Sunday; days outside the month are null. */
@@ -48,11 +57,17 @@ export function buildMonthGrid(
     window,
     today,
     selected = new Set(),
+    fertile = null,
+    intimacy = new Set(),
+    symptoms = new Set(),
   }: {
     flows: ReadonlyMap<LocalDate, Flow>;
     window: DateWindow | null;
     today: LocalDate;
     selected?: ReadonlySet<LocalDate>;
+    fertile?: FertileDays | null;
+    intimacy?: ReadonlySet<LocalDate>;
+    symptoms?: ReadonlySet<LocalDate>;
   },
 ): MonthGrid {
   const first = firstDayOf(month);
@@ -69,6 +84,13 @@ export function buildMonthGrid(
       isFuture: diffDays(date, today) > 0,
       inWindow: flow === null && isWithin(date, window),
       selected: selected.has(date),
+      fertility: isWithin(date, fertile?.ovulation ?? null)
+        ? 'ovulation'
+        : isWithin(date, fertile?.fertile ?? null)
+          ? 'fertile'
+          : null,
+      hasIntimacy: intimacy.has(date),
+      hasSymptoms: symptoms.has(date),
     });
   }
   while (cells.length % 7 !== 0) cells.push(null);
@@ -78,11 +100,25 @@ export function buildMonthGrid(
   return { month, weeks };
 }
 
+type Segment = { from: number; to: number };
+
 /** Runs of consecutive in-window days in one week, as column ranges [from, to]. */
-export function windowSegments(week: readonly (DayCell | null)[]): { from: number; to: number }[] {
-  const segments: { from: number; to: number }[] = [];
+export function windowSegments(week: readonly (DayCell | null)[]): Segment[] {
+  return segmentsWhere(week, (cell) => cell.inWindow);
+}
+
+/** Runs of consecutive possible fertile days (ovulation days included) in one week. */
+export function fertileSegments(week: readonly (DayCell | null)[]): Segment[] {
+  return segmentsWhere(week, (cell) => cell.fertility != null);
+}
+
+function segmentsWhere(
+  week: readonly (DayCell | null)[],
+  matches: (cell: DayCell) => boolean,
+): Segment[] {
+  const segments: Segment[] = [];
   week.forEach((cell, column) => {
-    if (cell?.inWindow !== true) return;
+    if (cell === null || !matches(cell)) return;
     const last = segments[segments.length - 1];
     if (last !== undefined && last.to === column - 1) last.to = column;
     else segments.push({ from: column, to: column });
@@ -97,7 +133,11 @@ export function dayLabel(cell: DayCell, locale?: string): string {
   if (cell.flow === 'spotting') parts.push('spotting');
   else if (cell.flow !== null) parts.push('period day', `${cell.flow} flow`);
   else if (cell.inWindow) parts.push('in the likely period window');
-  else parts.push('nothing logged');
+  if (cell.fertility === 'ovulation') parts.push('possible fertile day', 'likely ovulation');
+  else if (cell.fertility === 'fertile') parts.push('possible fertile day');
+  if (cell.hasSymptoms === true) parts.push('symptoms logged');
+  if (cell.hasIntimacy === true) parts.push('sex logged');
+  if (parts.length === (cell.isToday ? 2 : 1)) parts.push('nothing logged');
   if (cell.selected) parts.push('selected');
   return parts.join(', ');
 }

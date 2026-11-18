@@ -22,3 +22,16 @@ export const MIN_CYCLES_FOR_PREDICTION = 3;
 export const IMPLAUSIBLE_CYCLE = 10;
 /** Up to this many unlogged days between two logged days still count as one period. */
 export const PERIOD_MERGE_GAP = 2;
+
+// Fertile-day estimate (owner decision, Nov 18, 2026; see docs/HEALTH_RULES.md). Values are
+// cycle days, counted from day 1 = the first period day, unless noted.
+/** First possible fertile day = shortest cycle − this. Calendar (Knaus–Ogino) method. */
+export const FERTILE_FROM_SHORTEST = 18;
+/** Last possible fertile day = longest cycle − this. Calendar (Knaus–Ogino) method. */
+export const FERTILE_FROM_LONGEST = 11;
+/** Earliest likely ovulation = shortest cycle − this (luteal phase up to ~16 days). */
+export const OVULATION_FROM_SHORTEST = 16;
+/** Latest likely ovulation = longest cycle − this (luteal phase at least ~12 days). */
+export const OVULATION_FROM_LONGEST = 12;
+/** The calendar method uses the most recent cycles; with fewer, the estimate is marked rough. */
+export const FERTILE_CYCLES = 6;

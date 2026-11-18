@@ -6,7 +6,11 @@ import { notifyDbChange } from '../../db/live-query';
 import { periodDayRepo } from '../../db/repositories/period-day-repo';
 import { addMonths, monthOf, type LocalDate, type Month } from '../../lib/date';
 import type { Flow } from '../../theme';
-import { useCycleOverview, usePeriodDays } from '../cycles/hooks';
+import { useCycleOverview, useFertileDaysOn, usePeriodDays } from '../cycles/hooks';
+import { useIntimacyEntries } from '../intimacy/hooks';
+import { summarizeMonth } from '../reports/logic';
+import { useSymptomEntries } from '../symptoms/hooks';
+import { applyLayers, CALENDAR_LAYERS, toggleLayer, type CalendarLayer } from './filters';
 import { buildMonthGrid } from './logic';
 
 /** How far ahead the calendar can page, so she can see the likely window. */
@@ -59,12 +63,38 @@ export function useCalendar(today: LocalDate) {
   const [mode, setMode] = useState<'view' | 'backfill'>('view');
   const [selected, setSelected] = useState<ReadonlySet<LocalDate>>(() => new Set());
   const [backfillFlow, setBackfillFlow] = useState<Flow>('medium');
+  const [visible, setVisible] = useState<ReadonlySet<CalendarLayer>>(
+    () => new Set(CALENDAR_LAYERS),
+  );
 
   const flows = new Map(days.map((day) => [day.date, day.flow]));
   // Same prediction as Home: respects tags and confirmed short cycles.
   const prediction = overview?.prediction;
   const window = prediction?.state === 'window' ? prediction.window : null;
-  const grid = buildMonthGrid(month, { flows, window, today, selected });
+  const showFertile = useFertileDaysOn() === true;
+  const intimacyEntries = useIntimacyEntries() ?? [];
+  const symptomEntries = useSymptomEntries() ?? [];
+  const layers = applyLayers(
+    {
+      flows,
+      window,
+      fertile: showFertile ? (overview?.fertile ?? null) : null,
+      intimacy: new Set(intimacyEntries.map((e) => e.date)),
+      symptoms: new Set(symptomEntries.map((e) => e.date)),
+    },
+    visible,
+  );
+  const grid = buildMonthGrid(month, { ...layers, today, selected });
+  // The monthly report always counts everything, whatever the filters show.
+  const report =
+    overview === undefined
+      ? null
+      : summarizeMonth(month, {
+          days,
+          history: overview.history,
+          symptoms: symptomEntries,
+          intimacy: intimacyEntries,
+        });
   const canGoNext = monthIndex(month) < monthIndex(monthOf(today)) + MONTHS_AHEAD;
 
   const exitBackfill = () => {
@@ -74,6 +104,11 @@ export function useCalendar(today: LocalDate) {
 
   return {
     grid,
+    monthKey: monthIndex(month),
+    report,
+    showFertile,
+    visible,
+    toggleLayer: (layer: CalendarLayer) => setVisible((current) => toggleLayer(current, layer)),
     mode,
     canGoNext,
     selectedCount: selected.size,

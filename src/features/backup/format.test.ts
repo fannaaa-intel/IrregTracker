@@ -3,13 +3,15 @@ import { passphraseProblem, summarizeBackup, validateBackupData, type BackupData
 
 const STAMP = '2026-11-18T00:00:00.000Z';
 const sample: BackupData = {
-  schemaVersion: 1,
+  schemaVersion: 2,
   periodDays: regular.days.map((d) => ({ ...d, createdAt: STAMP, updatedAt: STAMP })),
   cycleTags: [{ cycleStart: regular.starts[1], reason: 'travel', note: null, exclude: true }],
   settings: [
     { key: 'onboarding_done', value: 'true' },
     { key: 'app_lock', value: 'true' },
   ],
+  symptoms: [{ date: regular.starts[1], type: 'cramps' }],
+  intimacy: [{ date: regular.starts[2], protection: 'protected' }],
 };
 
 describe('validateBackupData', () => {
@@ -17,6 +19,14 @@ describe('validateBackupData', () => {
     const data = validateBackupData(JSON.parse(JSON.stringify(sample)));
     expect(data?.periodDays).toHaveLength(regular.days.length);
     expect(data?.settings.map((s) => s.key)).toEqual(['onboarding_done']);
+    expect(data?.symptoms).toEqual(sample.symptoms);
+    expect(data?.intimacy).toEqual(sample.intimacy);
+  });
+
+  it('accepts a schema-1 backup, made before symptoms and sex logs existed', () => {
+    const { symptoms: _s, intimacy: _i, ...v1 } = { ...sample, schemaVersion: 1 };
+    const data = validateBackupData(JSON.parse(JSON.stringify(v1)));
+    expect(data).toMatchObject({ schemaVersion: 1, symptoms: [], intimacy: [] });
   });
 
   it.each([
@@ -26,6 +36,11 @@ describe('validateBackupData', () => {
     ['an unknown tag reason', { cycleTags: [{ ...sample.cycleTags[0], reason: 'party' }] }],
     ['a missing schema version', { schemaVersion: undefined }],
     ['settings that are not text', { settings: [{ key: 'x', value: 1 }] }],
+    ['an unknown symptom', { symptoms: [{ date: regular.starts[1], type: 'sneezing' }] }],
+    ['symptoms that are not a list', { symptoms: 'cramps' }],
+    ['a duplicate symptom', { symptoms: [sample.symptoms[0], sample.symptoms[0]] }],
+    ['an unknown protection', { intimacy: [{ date: regular.starts[2], protection: 'maybe' }] }],
+    ['a duplicate sex-log day', { intimacy: [sample.intimacy[0], sample.intimacy[0]] }],
   ])('rejects %s', (_, patch) => {
     expect(validateBackupData({ ...sample, ...patch })).toBeNull();
   });

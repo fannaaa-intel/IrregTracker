@@ -5,10 +5,12 @@ import { DevSettings } from 'react-native';
 import { wipeDatabase } from '../../db/client';
 import { applyAppearance } from '../appearance/store';
 import { protectAppSwitcher } from '../lock/device';
+import { cancelCycleReminders } from '../reminders/cycle-scheduler';
 import { cancelKindNotes } from '../reminders/scheduler';
 
 export async function deleteAllData(): Promise<void> {
   await cancelKindNotes().catch(() => undefined);
+  await cancelCycleReminders().catch(() => undefined);
   await protectAppSwitcher(false).catch(() => undefined);
   await wipeDatabase();
   applyAppearance('system');

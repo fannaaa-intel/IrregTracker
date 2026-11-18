@@ -54,6 +54,58 @@ describe('DayEditor', () => {
     expect(handlers.onClear).toHaveBeenCalledTimes(1);
   });
 
+  it('logs symptoms with one tap each and shows them as selected', async () => {
+    const onToggleSymptom = jest.fn();
+    await render(
+      <DayEditor
+        date="2026-12-03"
+        flow={null}
+        onSelect={jest.fn()}
+        onClear={jest.fn()}
+        onClose={jest.fn()}
+        symptoms={['cramps']}
+        onToggleSymptom={onToggleSymptom}
+      />,
+    );
+    expect(screen.getByRole('button', { name: 'Cramps' }).props.accessibilityState).toMatchObject({
+      selected: true,
+    });
+    await fireEvent.press(screen.getByRole('button', { name: 'Back pain' }));
+    expect(onToggleSymptom).toHaveBeenCalledWith('back-pain');
+  });
+
+  it('logs sex and then shows the safer-sex notes and a way to remove it', async () => {
+    const onSetProtection = jest.fn();
+    const onClearProtection = jest.fn();
+    const props = {
+      date: '2026-12-03',
+      flow: null,
+      onSelect: jest.fn(),
+      onClear: jest.fn(),
+      onClose: jest.fn(),
+      onSetProtection,
+      onClearProtection,
+    };
+    await render(<DayEditor {...props} />);
+    expect(screen.queryByRole('button', { name: 'Remove from this day' })).toBeNull();
+    await fireEvent.press(screen.getByRole('radio', { name: 'Sex, protected' }));
+    expect(onSetProtection).toHaveBeenCalledWith('protected');
+
+    await render(
+      <DayEditor {...props} protection="unprotected" saferSexNotes={['A calm note.']} />,
+    );
+    expect(screen.getByText('A calm note.')).toBeTruthy();
+    await fireEvent.press(screen.getByRole('button', { name: 'Remove from this day' }));
+    expect(onClearProtection).toHaveBeenCalledTimes(1);
+  });
+
+  it('closes with Done', async () => {
+    const { handlers, view } = renderEditor('light');
+    await view;
+    await fireEvent.press(screen.getByRole('button', { name: 'Done' }));
+    expect(handlers.onClose).toHaveBeenCalledTimes(1);
+  });
+
   it('closes without saving', async () => {
     const { handlers, view } = renderEditor(null);
     await view;

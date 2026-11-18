@@ -5,7 +5,7 @@ import { IconButton } from '@/components/IconButton';
 import { formatMonth } from '@/lib/date';
 import { radius, spacing, typography, useThemeColors } from '@/theme';
 
-import { weekdayInitials, windowSegments, type MonthGrid } from '../logic';
+import { fertileSegments, weekdayInitials, windowSegments, type MonthGrid } from '../logic';
 import { CalendarDay, DAY_CIRCLE, DAY_TOP_PADDING } from './CalendarDay';
 
 type Props = {
@@ -48,6 +48,22 @@ export function CalendarMonth({ grid, onDayPress, onPrevMonth, onNextMonth, canG
 
       {grid.weeks.map((week, row) => (
         <View key={row} style={styles.week}>
+          {/* Possible fertile days: a soft solid band (shape differs from the dashed window). */}
+          {fertileSegments(week).map(({ from, to }) => (
+            <View
+              key={`f${from}`}
+              pointerEvents="none"
+              style={[
+                styles.band,
+                styles.fertileBand,
+                {
+                  backgroundColor: colors.fertile,
+                  left: `${(from / 7) * 100}%`,
+                  width: `${((to - from + 1) / 7) * 100}%`,
+                },
+              ]}
+            />
+          ))}
           {/* DESIGN.md §4.5: dashed band joining the predicted days, drawn behind them. */}
           {windowSegments(week).map(({ from, to }) => (
             <View
@@ -102,5 +118,9 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderStyle: 'dashed',
     borderRadius: radius.pill,
+  },
+  fertileBand: {
+    borderWidth: 0,
+    borderStyle: 'solid',
   },
 });

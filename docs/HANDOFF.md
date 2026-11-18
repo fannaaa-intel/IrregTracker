@@ -25,6 +25,22 @@ Read this after PLAN.md, CLAUDE.md, docs/DESIGN.md and docs/HEALTH_RULES.md.
 - Typecheck, lint (0 warnings), Prettier and all tests pass; Android bundles with `npx expo export`.
 - PLAN.md §8 privacy boxes are unticked until the encryption is checked on a real phone.
 
+## Her feedback round 1 (Nov 18, shipped as an EAS update on runtime 1.2.0)
+
+- Feedback: late prediction stayed in October; she wanted ovulation, symptoms, a sex log with a
+  heart and safer-sex reminders, a "1 day late" note, notifications, calendar swipe, filters and a
+  monthly report. Research and sources are in docs/HEALTH_RULES.md.
+- Prediction: `usual` = the history window (ring, late count, reminders); `window` = what's shown,
+  moved to start today once late. Fertile days pause while late.
+- `features/fertility/` (calendar method), `features/symptoms/`, `features/intimacy/`,
+  `features/reports/` (month at a glance), `features/logging/filters.ts` + `LayerChips` (filters =
+  legend), `MonthSwiper` (PanResponder, no new dependency).
+- Migration 2 adds `symptom` and `intimacy`. Backups carry both; schema-1 backups still restore.
+- Cycle reminders: `reminders/cycle-logic.ts` (pure plan), `cycle-scheduler.ts`, re-planned on open,
+  on return to the app, and 1.5 s after any change. Delete all cancels them too.
+- No native changes, so it ships over the air: she taps Settings → Check for updates (or it
+  arrives between 8 PM and 12 AM).
+
 ## Release & updates: what's done (Nov 18)
 
 - `src/features/updates/`: pure `logic.ts` (window, 30-min throttle, status text), `app-update.ts`

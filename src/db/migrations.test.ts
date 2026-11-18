@@ -28,16 +28,32 @@ describeSql('runMigrations', () => {
     await db.closeAsync();
   });
 
-  it('creates the v1 tables on a fresh database and sets user_version', async () => {
+  it('creates every table on a fresh database and sets user_version', async () => {
     await expect(runMigrations(db)).resolves.toBe(migrations.length);
-    expect(await userVersion(db)).toBe(1);
-    expect(await tableNames(db)).toEqual(['cycle_tag', 'period_day', 'setting']);
+    expect(await userVersion(db)).toBe(2);
+    expect(await tableNames(db)).toEqual([
+      'cycle_tag',
+      'intimacy',
+      'period_day',
+      'setting',
+      'symptom',
+    ]);
+  });
+
+  it('upgrades a v1 database to v2 and keeps its rows', async () => {
+    await runMigrations(db, migrations.slice(0, 1));
+    await db.runAsync(
+      "INSERT INTO period_day (date, flow, created_at, updated_at) VALUES ('2026-03-01', 'light', 't', 't');",
+    );
+    await expect(runMigrations(db)).resolves.toBe(2);
+    const rows = await db.getAllAsync<{ date: string }>('SELECT date FROM period_day;');
+    expect(rows).toEqual([{ date: '2026-03-01' }]);
   });
 
   it('is a no-op when the database is already up to date', async () => {
     await runMigrations(db);
-    await expect(runMigrations(db)).resolves.toBe(1);
-    expect(await userVersion(db)).toBe(1);
+    await expect(runMigrations(db)).resolves.toBe(2);
+    expect(await userVersion(db)).toBe(2);
   });
 
   it('runs only the steps newer than user_version', async () => {
