@@ -253,11 +253,11 @@ Show one gentle card at a time on Home, dismissible, with a "Why am I seeing thi
 - [x] `periodDayRepo` (upsert, delete, listBetween)
 
 ### M2: Core logic (test-first)
-- [ ] `lib/date.ts` LocalDate helpers + tests
-- [ ] `lib/stats.ts` median / IQR / stdev + tests
-- [ ] `features/cycles` derivation + tests (gaps, spotting, open cycle)
-- [ ] `features/prediction` + tests (learning, low/med/high, late)
-- [ ] `features/flags` + tests (each rule, boundary values)
+- [x] `lib/date.ts` LocalDate helpers + tests
+- [x] `lib/stats.ts` median / IQR / stdev + tests
+- [x] `features/cycles` derivation + tests (gaps, spotting, open cycle)
+- [x] `features/prediction` + tests (learning, low/med/high, late)
+- [x] `features/flags` + tests (each rule, boundary values)
 
 ### M3: Logging UI
 - [ ] Calendar month grid component
