@@ -51,7 +51,8 @@
           "icon": "./assets/images/android-icon-monochrome.png",
           "color": "#C2416E"
         }
-      ]
+      ],
+      "expo-sharing"
     ],
     "runtimeVersion": {
       "policy": "appVersion"
