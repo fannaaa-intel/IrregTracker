@@ -247,10 +247,10 @@ Show one gentle card at a time on Home, dismissible, with a "Why am I seeing thi
 - [ ] Dev builds running on iOS simulator and Android emulator
 
 ### M1: Encrypted storage
-- [ ] SQLCipher flag + key service
-- [ ] `db/client.ts` with cipher verification
-- [ ] Migrations via `PRAGMA user_version`
-- [ ] `periodDayRepo` (upsert, delete, listBetween)
+- [x] SQLCipher flag + key service
+- [x] `db/client.ts` with cipher verification
+- [x] Migrations via `PRAGMA user_version`
+- [x] `periodDayRepo` (upsert, delete, listBetween)
 
 ### M2: Core logic (test-first)
 - [ ] `lib/date.ts` LocalDate helpers + tests
