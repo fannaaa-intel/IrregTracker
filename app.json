@@ -15,7 +15,7 @@
     },
     "android": {
       "package": "com.fannaaa.cycle",
-      "versionCode": 3,
+      "versionCode": 4,
       "allowBackup": false,
       "adaptiveIcon": {
         "backgroundColor": "#FCDCE8",
